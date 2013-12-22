@@ -1,6 +1,34 @@
-*.class
+######### ignore vlt and ide artifacts
+.vlt*
+*.iml
+.idea
 
-# Package Files #
-*.jar
-*.war
-*.ear
+######## ignore compiled classes
+*.class
+target
+
+
+target
+.idea
+.classpath
+.metadata
+.project
+.settings
+.externalToolBuilders
+maven-eclipse.xml
+*.swp
+*.iml
+*.ipr
+*.iws
+*.bak
+.vlt
+.DS_Store
+jcr.log
+atlassian-ide-plugin.xml
+.vlt-sync.log
+.vlt-sync-config.properties
+generated
+
+# Ignore Quickstart launches in the source tree
+license.properties
+crx-quickstart
