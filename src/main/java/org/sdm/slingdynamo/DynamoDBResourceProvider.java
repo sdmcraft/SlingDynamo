@@ -6,8 +6,10 @@ import com.amazonaws.regions.Region;
 import com.amazonaws.regions.Regions;
 import com.amazonaws.services.dynamodbv2.AmazonDynamoDBClient;
 import com.amazonaws.services.dynamodbv2.model.AttributeValue;
-import com.amazonaws.services.dynamodbv2.model.GetItemRequest;
-import com.amazonaws.services.dynamodbv2.model.GetItemResult;
+import com.amazonaws.services.dynamodbv2.model.ScanRequest;
+import com.amazonaws.services.dynamodbv2.model.ScanResult;
+import com.amazonaws.util.json.JSONException;
+import com.amazonaws.util.json.JSONObject;
 
 import org.apache.felix.scr.annotations.Activate;
 import org.apache.felix.scr.annotations.Component;
@@ -24,9 +26,8 @@ import org.apache.sling.api.resource.SyntheticResource;
 import org.apache.sling.commons.osgi.PropertiesUtil;
 import org.osgi.framework.BundleContext;
 
-import java.util.Arrays;
-import java.util.HashMap;
 import java.util.Iterator;
+import java.util.List;
 import java.util.Map;
 
 import javax.servlet.http.HttpServletRequest;
@@ -51,6 +52,7 @@ public class DynamoDBResourceProvider implements ResourceProvider
     private String accessKey = "";
     private String region = "";
     private String resourceType = "";
+    private String root = "";
     private String secretAccessKey = "";
 
     @Activate
@@ -60,6 +62,7 @@ public class DynamoDBResourceProvider implements ResourceProvider
         this.secretAccessKey = PropertiesUtil.toString(config.get(PROP_SECRET_ACCESS_KEY), "");
         this.region = PropertiesUtil.toString(config.get(PROP_REGION), "");
         this.resourceType = PropertiesUtil.toString(config.get(SlingConstants.PROPERTY_RESOURCE_TYPE), "");
+        this.root = PropertiesUtil.toString(config.get(ResourceProvider.ROOTS), "");
 
         AWSCredentials awsCredentials = new BasicAWSCredentials(accessKey, secretAccessKey);
         dynamoDB = new AmazonDynamoDBClient(awsCredentials);
@@ -76,22 +79,65 @@ public class DynamoDBResourceProvider implements ResourceProvider
 
     public Resource getResource(ResourceResolver resolver, String path)
     {
-        Map<String, AttributeValue> key = new HashMap<String, AttributeValue>();
-        key.put("name", new AttributeValue().withS("Airplane"));
+        Resource resource = null;
 
-        GetItemRequest getItemRequest = new GetItemRequest().withTableName("my-favorite-movies-table").withKey(key).withAttributesToGet(Arrays.asList("name", "fans", "rating", "year"));
-
-        GetItemResult result = dynamoDB.getItem(getItemRequest);
-        ResourceMetadata resourceMetaData = new ResourceMetadata();
-
-        for (Map.Entry<String, AttributeValue> item : result.getItem().entrySet())
+        if (path.startsWith(root) && (path.length() > root.length()))
         {
-            String attributeName = item.getKey();
-            AttributeValue value = item.getValue();
-            resourceMetaData.put(attributeName, value);
-        }
+            String subPath = path.substring(root.length() + 1);
+            String[] subPathSplits = subPath.split("/");
+            String table = subPathSplits[0];
+            String column = null;
+            String value = null;
 
-        Resource resource = new SyntheticResource(resolver, resourceMetaData, resourceType);
+            if (subPathSplits.length > 1)
+            {
+                column = subPath.split("/")[1];
+            }
+
+            if (subPathSplits.length > 2)
+            {
+                value = subPath.split("/")[2];
+            }
+
+            ScanRequest scanRequest = null;
+            ScanResult scanResult = null;
+            ResourceMetadata resourceMetaData = new ResourceMetadata();
+
+            if (column == null)
+            {
+                scanRequest = new ScanRequest(table);
+                scanResult = dynamoDB.scan(scanRequest);
+            }
+
+            List<Map<String, AttributeValue>> resultList = scanResult.getItems();
+
+            int rowNum = 0;
+
+            for (Map<String, AttributeValue> result : resultList)
+            {
+                JSONObject row = new JSONObject();
+
+                for (Map.Entry<String, AttributeValue> item : result.entrySet())
+                {
+                    String attributeName = item.getKey();
+                    AttributeValue attributeValue = item.getValue();
+
+                    try
+                    {
+                        row.put(attributeName, attributeValue.getS());
+                    }
+                    catch (JSONException e)
+                    {
+                        // TODO Auto-generated catch block
+                        e.printStackTrace();
+                    }
+                }
+
+                resourceMetaData.put(Integer.toString(rowNum++), row);
+            }
+
+            resource = new SyntheticResource(resolver, resourceMetaData, resourceType);
+        }
 
         return resource;
     }

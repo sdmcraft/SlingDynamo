@@ -6,5 +6,4 @@
 
 <sling:defineObjects />
 <title><%=resource.toString()%></title>
-Ciao !!!!
 <%=resource.getResourceMetadata()%>

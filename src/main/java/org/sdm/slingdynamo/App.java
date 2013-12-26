@@ -196,7 +196,7 @@ public class App
         throw new RuntimeException("Table " + tableName + " never went active");
     }
 
-    public static void main(String[] args)
+    public static void main2(String[] args)
     {
         init();
 
@@ -221,6 +221,27 @@ public class App
             System.out.println(attributeName + " " + ((value.getS() == null) ? "" : ("S=[" + value.getS() + "]")) + ((value.getN() == null) ? "" : ("N=[" + value.getN() + "]")) +
                 ((value.getB() == null) ? "" : ("B=[" + value.getB() + "]")) + ((value.getSS() == null) ? "" : ("SS=[" + value.getSS() + "]")) +
                 ((value.getNS() == null) ? "" : ("NS=[" + value.getNS() + "]")) + ((value.getBS() == null) ? "" : ("BS=[" + value.getBS() + "] \n")));
+        }
+    }
+
+    public static void main(String[] args)
+    {
+        String path = "/abc/pqr/123/456";
+        String root = "/abc/pqr";
+        String subPath = path.substring(root.length() + 1);
+        String[] subPathSplits = subPath.split("/");
+        String table = subPathSplits[0];
+        String column = null;
+        String value = null;
+
+        if (subPathSplits.length > 1)
+        {
+            column = subPath.split("/")[1];
+        }
+
+        if (subPathSplits.length > 2)
+        {
+            value = subPath.split("/")[2];
         }
     }
 }
