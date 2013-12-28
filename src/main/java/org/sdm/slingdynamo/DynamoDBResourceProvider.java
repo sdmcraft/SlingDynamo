@@ -1,30 +1,24 @@
+/*
+ * Copyright (c) 2013-14, Satya Deep Maheshwari. All rights reserved.
+ *
+ * The contents of this file are subject to the MIT License
+ * You may not use this file except in compliance with the License.
+ * A copy of the License is available at
+ * http://opensource.org/licenses/MIT
+ *
+ * Copyright (c) 2013-2014 Satya Deep Maheshwari
+ */
 package org.sdm.slingdynamo;
 
-import com.amazonaws.auth.AWSCredentials;
-import com.amazonaws.auth.BasicAWSCredentials;
-import com.amazonaws.regions.Region;
-import com.amazonaws.regions.Regions;
 import com.amazonaws.services.dynamodbv2.AmazonDynamoDBClient;
 import com.amazonaws.services.dynamodbv2.model.AttributeValue;
+import com.amazonaws.services.dynamodbv2.model.ComparisonOperator;
+import com.amazonaws.services.dynamodbv2.model.Condition;
 import com.amazonaws.services.dynamodbv2.model.ScanRequest;
 import com.amazonaws.services.dynamodbv2.model.ScanResult;
+
 import com.amazonaws.util.json.JSONException;
 import com.amazonaws.util.json.JSONObject;
-
-import org.apache.felix.scr.annotations.Activate;
-import org.apache.felix.scr.annotations.Component;
-import org.apache.felix.scr.annotations.Deactivate;
-import org.apache.felix.scr.annotations.Properties;
-import org.apache.felix.scr.annotations.Property;
-import org.apache.felix.scr.annotations.Service;
-import org.apache.sling.api.SlingConstants;
-import org.apache.sling.api.resource.Resource;
-import org.apache.sling.api.resource.ResourceMetadata;
-import org.apache.sling.api.resource.ResourceProvider;
-import org.apache.sling.api.resource.ResourceResolver;
-import org.apache.sling.api.resource.SyntheticResource;
-import org.apache.sling.commons.osgi.PropertiesUtil;
-import org.osgi.framework.BundleContext;
 
 import java.util.Iterator;
 import java.util.List;
@@ -32,52 +26,116 @@ import java.util.Map;
 
 import javax.servlet.http.HttpServletRequest;
 
+import org.apache.sling.api.resource.ModifyingResourceProvider;
+import org.apache.sling.api.resource.PersistenceException;
+import org.apache.sling.api.resource.Resource;
+import org.apache.sling.api.resource.ResourceMetadata;
+import org.apache.sling.api.resource.ResourceProvider;
+import org.apache.sling.api.resource.ResourceResolver;
+import org.apache.sling.api.resource.SyntheticResource;
 
-@Component(name = "DynamoDBResourceProvider", label = "DynamoDBResourceProvider", description = "Dynamo DB Resource Provider", immediate = true, metatype = true)
-@Service
-@Properties({@Property(name = "service.description", value = "Dynamo DB Resource Provider")
-    , @Property(name = "service.vendor", value = "sdm.org")
-    , @Property(name = ResourceProvider.ROOTS, value = "/content/dynamodb")
-    , @Property(name = SlingConstants.PROPERTY_RESOURCE_TYPE, value = "/apps/dynamodb/render.jsp")
-})
-public class DynamoDBResourceProvider implements ResourceProvider
+
+/**
+ * DOCUMENT ME!
+ *
+ * @author $Satya Deep Maheshwari$
+ * @version $Revision: 1.0 $
+ */
+public class DynamoDBResourceProvider
+    implements ResourceProvider, ModifyingResourceProvider
 {
-    @Property
-    private static final String PROP_ACCESS_KEY = "aws.access.key";
-    @Property
-    private static final String PROP_SECRET_ACCESS_KEY = "aws.secret.access.key";
-    @Property
-    private static final String PROP_REGION = "aws.region";
+    //~ Instance variables ---------------------------------------------------------------
+
     private AmazonDynamoDBClient dynamoDB;
-    private String accessKey = "";
-    private String region = "";
-    private String resourceType = "";
-    private String root = "";
-    private String secretAccessKey = "";
+    private String resourceType;
+    private String root;
 
-    @Activate
-    protected void activate(BundleContext context, Map<String, Object> config)
+    //~ Constructors ---------------------------------------------------------------------
+
+/**
+     * Creates a new DynamoDBResourceProvider object.
+     *
+     * @param root DOCUMENT ME!
+     * @param dynamoDB DOCUMENT ME!
+     * @param resourceType DOCUMENT ME!
+     */
+    public DynamoDBResourceProvider(
+        String               root,
+        AmazonDynamoDBClient dynamoDB,
+        String               resourceType)
     {
-        this.accessKey = PropertiesUtil.toString(config.get(PROP_ACCESS_KEY), "");
-        this.secretAccessKey = PropertiesUtil.toString(config.get(PROP_SECRET_ACCESS_KEY), "");
-        this.region = PropertiesUtil.toString(config.get(PROP_REGION), "");
-        this.resourceType = PropertiesUtil.toString(config.get(SlingConstants.PROPERTY_RESOURCE_TYPE), "");
-        this.root = PropertiesUtil.toString(config.get(ResourceProvider.ROOTS), "");
-
-        AWSCredentials awsCredentials = new BasicAWSCredentials(accessKey, secretAccessKey);
-        dynamoDB = new AmazonDynamoDBClient(awsCredentials);
-
-        Region awsRegion = Region.getRegion(Regions.fromName(region));
-        dynamoDB.setRegion(awsRegion);
+        super();
+        this.root = root;
+        this.dynamoDB = dynamoDB;
+        this.resourceType = resourceType;
     }
 
-    @Deactivate
-    protected void dectivate(BundleContext context, Map<String, Object> config)
+    //~ Methods --------------------------------------------------------------------------
+
+    /**
+     * DOCUMENT ME!
+     *
+     * @param arg0 DOCUMENT ME!
+     *
+     * @throws PersistenceException DOCUMENT ME!
+     */
+    public void commit(ResourceResolver arg0)
+      throws PersistenceException
     {
-        dynamoDB.shutdown();
+        // TODO Auto-generated method stub
     }
 
-    public Resource getResource(ResourceResolver resolver, String path)
+
+    /**
+     * DOCUMENT ME!
+     *
+     * @param arg0 DOCUMENT ME!
+     * @param arg1 DOCUMENT ME!
+     * @param arg2 DOCUMENT ME!
+     *
+     * @return DOCUMENT ME!
+     *
+     * @throws PersistenceException DOCUMENT ME!
+     */
+    public Resource create(
+        ResourceResolver    arg0,
+        String              arg1,
+        Map<String, Object> arg2)
+      throws PersistenceException
+    {
+        // TODO Auto-generated method stub
+        return null;
+    }
+
+
+    /**
+     * DOCUMENT ME!
+     *
+     * @param arg0 DOCUMENT ME!
+     * @param arg1 DOCUMENT ME!
+     *
+     * @throws PersistenceException DOCUMENT ME!
+     */
+    public void delete(
+        ResourceResolver arg0,
+        String           arg1)
+      throws PersistenceException
+    {
+        // TODO Auto-generated method stub
+    }
+
+
+    /**
+     * DOCUMENT ME!
+     *
+     * @param resolver DOCUMENT ME!
+     * @param path DOCUMENT ME!
+     *
+     * @return DOCUMENT ME!
+     */
+    public Resource getResource(
+        ResourceResolver resolver,
+        String           path)
     {
         Resource resource = null;
 
@@ -89,25 +147,26 @@ public class DynamoDBResourceProvider implements ResourceProvider
             String column = null;
             String value = null;
 
-            if (subPathSplits.length > 1)
+            ScanRequest scanRequest = new ScanRequest().withTableName(table);
+
+            if (
+                (subPathSplits.length > 1) && subPathSplits[1].contains("=")
+                && (subPathSplits[1].split("=").length == 2))
             {
-                column = subPath.split("/")[1];
+                column = subPathSplits[1].split("=")[0];
+                value = subPathSplits[1].split("=")[1];
+
+                Condition condition =
+                    new Condition().withComparisonOperator(
+                        ComparisonOperator.EQ.toString())
+                                   .withAttributeValueList(
+                        new AttributeValue().withS(value));
+                scanRequest = scanRequest.addScanFilterEntry(column, condition);
             }
 
-            if (subPathSplits.length > 2)
-            {
-                value = subPath.split("/")[2];
-            }
+            ScanResult scanResult = dynamoDB.scan(scanRequest);
 
-            ScanRequest scanRequest = null;
-            ScanResult scanResult = null;
             ResourceMetadata resourceMetaData = new ResourceMetadata();
-
-            if (column == null)
-            {
-                scanRequest = new ScanRequest(table);
-                scanResult = dynamoDB.scan(scanRequest);
-            }
 
             List<Map<String, AttributeValue>> resultList = scanResult.getItems();
 
@@ -142,15 +201,63 @@ public class DynamoDBResourceProvider implements ResourceProvider
         return resource;
     }
 
-    public Iterator<Resource> listChildren(Resource arg0)
+
+    /**
+     * DOCUMENT ME!
+     *
+     * @param arg0 DOCUMENT ME!
+     * @param arg1 DOCUMENT ME!
+     * @param arg2 DOCUMENT ME!
+     *
+     * @return DOCUMENT ME!
+     *
+     * @throws UnsupportedOperationException DOCUMENT ME!
+     */
+    public Resource getResource(
+        ResourceResolver   arg0,
+        HttpServletRequest arg1,
+        String             arg2)
     {
-        // TODO Auto-generated method stub
-        return null;
+        throw new UnsupportedOperationException();
     }
 
-    public Resource getResource(ResourceResolver arg0, HttpServletRequest arg1, String arg2)
+
+    /**
+     * DOCUMENT ME!
+     *
+     * @param arg0 DOCUMENT ME!
+     *
+     * @return DOCUMENT ME!
+     */
+    public boolean hasChanges(ResourceResolver arg0)
     {
         // TODO Auto-generated method stub
-        return null;
+        return false;
+    }
+
+
+    /**
+     * DOCUMENT ME!
+     *
+     * @param arg0 DOCUMENT ME!
+     *
+     * @return DOCUMENT ME!
+     *
+     * @throws UnsupportedOperationException DOCUMENT ME!
+     */
+    public Iterator<Resource> listChildren(Resource arg0)
+    {
+        throw new UnsupportedOperationException();
+    }
+
+
+    /**
+     * DOCUMENT ME!
+     *
+     * @param arg0 DOCUMENT ME!
+     */
+    public void revert(ResourceResolver arg0)
+    {
+        // TODO Auto-generated method stub
     }
 }
