@@ -107,7 +107,11 @@
 						<Import-Package>*;resolution:=optional</Import-Package>
 						<Export-Package>org.sdm.slingdynamo</Export-Package>
 						<Embed-Dependency>aws-java-sdk,httpcore,httpclient,jackson-databind,jackson-core,jackson-annotations</Embed-Dependency>
-						<Sling-Initial-Content>SLING-INF/apps/dynamodb;overwrite:=true;path:=/apps/dynamodb</Sling-Initial-Content>
+						<Sling-Initial-Content>
+							SLING-INF/apps/dynamodb;overwrite:=true;path:=/apps/dynamodb,
+							SLING-INF/apps/dynamodb/demo;overwrite:=true;path:=/apps/dynamodb/demo,
+							SLING-INF/content/dynamodbdemo;overwrite:=true;path:=/content/dynamodbdemo
+						</Sling-Initial-Content>
 					</instructions>
 				</configuration>
 			</plugin>
