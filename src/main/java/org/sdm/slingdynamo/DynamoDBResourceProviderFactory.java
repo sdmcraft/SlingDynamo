@@ -47,7 +47,7 @@ import org.apache.sling.commons.osgi.PropertiesUtil;
 @Properties({@Property(name = "service.description",value = "Dynamo DB Resource Provider Factory")
     , @Property(name = "service.vendor",value = "sdm.org")
     , @Property(name = ResourceProvider.ROOTS,value = "/content/dynamodb")
-    , @Property(name = SlingConstants.PROPERTY_RESOURCE_TYPE,value = "/apps/dynamodb/render.jsp")
+	, @Property(name=SlingConstants.PROPERTY_RESOURCE_TYPE, value="/apps/dynamodb/render")
 })
 public class DynamoDBResourceProviderFactory
     implements ResourceProviderFactory
@@ -122,6 +122,7 @@ public class DynamoDBResourceProviderFactory
         this.resourceType = PropertiesUtil.toString(
                 config.get(SlingConstants.PROPERTY_RESOURCE_TYPE), "");
         this.root = PropertiesUtil.toString(config.get(ResourceProvider.ROOTS), "");
+        this.resourceType = PropertiesUtil.toString(config.get(SlingConstants.PROPERTY_RESOURCE_TYPE), "");
 
         AWSCredentials awsCredentials =
             new BasicAWSCredentials(accessKey, secretAccessKey);

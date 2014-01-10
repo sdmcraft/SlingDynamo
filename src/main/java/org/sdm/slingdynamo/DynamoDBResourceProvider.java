@@ -10,16 +10,7 @@
  */
 package org.sdm.slingdynamo;
 
-import com.amazonaws.services.dynamodbv2.AmazonDynamoDBClient;
-import com.amazonaws.services.dynamodbv2.model.AttributeValue;
-import com.amazonaws.services.dynamodbv2.model.ComparisonOperator;
-import com.amazonaws.services.dynamodbv2.model.Condition;
-import com.amazonaws.services.dynamodbv2.model.ScanRequest;
-import com.amazonaws.services.dynamodbv2.model.ScanResult;
-
-import com.amazonaws.util.json.JSONException;
-import com.amazonaws.util.json.JSONObject;
-
+import java.util.Date;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
@@ -33,6 +24,17 @@ import org.apache.sling.api.resource.ResourceMetadata;
 import org.apache.sling.api.resource.ResourceProvider;
 import org.apache.sling.api.resource.ResourceResolver;
 import org.apache.sling.api.resource.SyntheticResource;
+
+import com.amazonaws.services.dynamodbv2.AmazonDynamoDBClient;
+import com.amazonaws.services.dynamodbv2.model.AttributeValue;
+import com.amazonaws.services.dynamodbv2.model.ComparisonOperator;
+import com.amazonaws.services.dynamodbv2.model.Condition;
+import com.amazonaws.services.dynamodbv2.model.DescribeTableRequest;
+import com.amazonaws.services.dynamodbv2.model.DescribeTableResult;
+import com.amazonaws.services.dynamodbv2.model.ScanRequest;
+import com.amazonaws.services.dynamodbv2.model.ScanResult;
+import com.amazonaws.util.json.JSONException;
+import com.amazonaws.util.json.JSONObject;
 
 
 /**
@@ -147,53 +149,67 @@ public class DynamoDBResourceProvider
             String column = null;
             String value = null;
 
-            ScanRequest scanRequest = new ScanRequest().withTableName(table);
-
-            if (
-                (subPathSplits.length > 1) && subPathSplits[1].contains("=")
-                && (subPathSplits[1].split("=").length == 2))
-            {
-                column = subPathSplits[1].split("=")[0];
-                value = subPathSplits[1].split("=")[1];
-
-                Condition condition =
-                    new Condition().withComparisonOperator(
-                        ComparisonOperator.EQ.toString())
-                                   .withAttributeValueList(
-                        new AttributeValue().withS(value));
-                scanRequest = scanRequest.addScanFilterEntry(column, condition);
-            }
-
-            ScanResult scanResult = dynamoDB.scan(scanRequest);
-
+            
             ResourceMetadata resourceMetaData = new ResourceMetadata();
-
-            List<Map<String, AttributeValue>> resultList = scanResult.getItems();
-
-            int rowNum = 0;
-
-            for (Map<String, AttributeValue> result : resultList)
+            DescribeTableRequest describeTableRequest = new DescribeTableRequest(table);
+            DescribeTableResult describeTableResult = dynamoDB.describeTable(describeTableRequest);
+            Date creationDate = describeTableResult.getTable().getCreationDateTime();
+            long itemCount = describeTableResult.getTable().getItemCount();
+            resourceMetaData.put("creation-date", creationDate);
+            resourceMetaData.put("recoord-count", itemCount);
+            if (subPathSplits.length > 1 && subPathSplits[1].contains("=") && subPathSplits[1].split("=").length == 2)
             {
-                JSONObject row = new JSONObject();
+            	if(subPathSplits[1].startsWith("criteria"))
+            	{
+            		resourceMetaData.put("criteria", subPathSplits[1].split("=")[1]);
+            	}
+            	else
+	            {
+            		ScanRequest scanRequest = new ScanRequest().withTableName(table);
+	                column = subPathSplits[1].split("=")[0];
+	                value = subPathSplits[1].split("=")[1];
+	
+	                Condition condition =
+	                    new Condition().withComparisonOperator(
+	                        ComparisonOperator.EQ.toString())
+	                                   .withAttributeValueList(
+	                        new AttributeValue().withS(value));
+	                scanRequest = scanRequest.addScanFilterEntry(column, condition);
+	                ScanResult scanResult = dynamoDB.scan(scanRequest);
 
-                for (Map.Entry<String, AttributeValue> item : result.entrySet())
-                {
-                    String attributeName = item.getKey();
-                    AttributeValue attributeValue = item.getValue();
 
-                    try
-                    {
-                        row.put(attributeName, attributeValue.getS());
-                    }
-                    catch (JSONException e)
-                    {
-                        // TODO Auto-generated catch block
-                        e.printStackTrace();
-                    }
-                }
+	                List<Map<String, AttributeValue>> resultList = scanResult.getItems();
+	                if(resultList.size() > 1)
+	                {
+	                	throw new RuntimeException("Ambiguous resource request");
+	                }
 
-                resourceMetaData.put(Integer.toString(rowNum++), row);
+	                int rowNum = 0;
+	                Map<String, AttributeValue> result = resultList.get(0);
+	                JSONObject row = new JSONObject();
+
+	                for (Map.Entry<String, AttributeValue> item : result.entrySet())
+	                {
+	                    String attributeName = item.getKey();
+	                    AttributeValue attributeValue = item.getValue();
+
+	                    try
+	                    {
+	                        row.put(attributeName, attributeValue.getS());
+	                    }
+	                    catch (JSONException e)
+	                    {
+	                        // TODO Auto-generated catch block
+	                        e.printStackTrace();
+	                    }
+	                }
+
+	                resourceMetaData.put(Integer.toString(rowNum++), row);
+
+	            }
             }
+
+
 
             resource = new SyntheticResource(resolver, resourceMetaData, resourceType);
         }

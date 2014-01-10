@@ -7,3 +7,4 @@
 <sling:defineObjects />
 <title><%=resource.toString()%></title>
 <%=resource.getResourceMetadata()%>
+render.jsp rendered this
