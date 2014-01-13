@@ -10,12 +10,17 @@
  */
 package org.sdm.slingdynamo;
 
-import java.util.Date;
-import java.util.Iterator;
-import java.util.List;
-import java.util.Map;
+import com.amazonaws.services.dynamodbv2.AmazonDynamoDBClient;
+import com.amazonaws.services.dynamodbv2.model.AttributeValue;
+import com.amazonaws.services.dynamodbv2.model.ComparisonOperator;
+import com.amazonaws.services.dynamodbv2.model.Condition;
+import com.amazonaws.services.dynamodbv2.model.DescribeTableRequest;
+import com.amazonaws.services.dynamodbv2.model.DescribeTableResult;
+import com.amazonaws.services.dynamodbv2.model.ScanRequest;
+import com.amazonaws.services.dynamodbv2.model.ScanResult;
 
-import javax.servlet.http.HttpServletRequest;
+import com.amazonaws.util.json.JSONException;
+import com.amazonaws.util.json.JSONObject;
 
 import org.apache.sling.api.resource.ModifyingResourceProvider;
 import org.apache.sling.api.resource.PersistenceException;
@@ -25,16 +30,13 @@ import org.apache.sling.api.resource.ResourceProvider;
 import org.apache.sling.api.resource.ResourceResolver;
 import org.apache.sling.api.resource.SyntheticResource;
 
-import com.amazonaws.services.dynamodbv2.AmazonDynamoDBClient;
-import com.amazonaws.services.dynamodbv2.model.AttributeValue;
-import com.amazonaws.services.dynamodbv2.model.ComparisonOperator;
-import com.amazonaws.services.dynamodbv2.model.Condition;
-import com.amazonaws.services.dynamodbv2.model.DescribeTableRequest;
-import com.amazonaws.services.dynamodbv2.model.DescribeTableResult;
-import com.amazonaws.services.dynamodbv2.model.ScanRequest;
-import com.amazonaws.services.dynamodbv2.model.ScanResult;
-import com.amazonaws.util.json.JSONException;
-import com.amazonaws.util.json.JSONObject;
+import java.util.ArrayList;
+import java.util.Date;
+import java.util.Iterator;
+import java.util.List;
+import java.util.Map;
+
+import javax.servlet.http.HttpServletRequest;
 
 
 /**
@@ -43,36 +45,26 @@ import com.amazonaws.util.json.JSONObject;
  * @author $Satya Deep Maheshwari$
  * @version $Revision: 1.0 $
  */
-public class DynamoDBResourceProvider
-    implements ResourceProvider, ModifyingResourceProvider
-{
-    //~ Instance variables ---------------------------------------------------------------
-
+public class DynamoDBResourceProvider implements ResourceProvider,
+    ModifyingResourceProvider {
     private AmazonDynamoDBClient dynamoDB;
     private String resourceType;
     private String root;
 
-    //~ Constructors ---------------------------------------------------------------------
-
-/**
-     * Creates a new DynamoDBResourceProvider object.
-     *
-     * @param root DOCUMENT ME!
-     * @param dynamoDB DOCUMENT ME!
-     * @param resourceType DOCUMENT ME!
-     */
-    public DynamoDBResourceProvider(
-        String               root,
-        AmazonDynamoDBClient dynamoDB,
-        String               resourceType)
-    {
+    /**
+         * Creates a new DynamoDBResourceProvider object.
+         *
+         * @param root DOCUMENT ME!
+         * @param dynamoDB DOCUMENT ME!
+         * @param resourceType DOCUMENT ME!
+         */
+    public DynamoDBResourceProvider(String root, AmazonDynamoDBClient dynamoDB,
+        String resourceType) {
         super();
         this.root = root;
         this.dynamoDB = dynamoDB;
         this.resourceType = resourceType;
     }
-
-    //~ Methods --------------------------------------------------------------------------
 
     /**
      * DOCUMENT ME!
@@ -81,12 +73,9 @@ public class DynamoDBResourceProvider
      *
      * @throws PersistenceException DOCUMENT ME!
      */
-    public void commit(ResourceResolver arg0)
-      throws PersistenceException
-    {
+    public void commit(ResourceResolver arg0) throws PersistenceException {
         // TODO Auto-generated method stub
     }
-
 
     /**
      * DOCUMENT ME!
@@ -99,16 +88,11 @@ public class DynamoDBResourceProvider
      *
      * @throws PersistenceException DOCUMENT ME!
      */
-    public Resource create(
-        ResourceResolver    arg0,
-        String              arg1,
-        Map<String, Object> arg2)
-      throws PersistenceException
-    {
+    public Resource create(ResourceResolver arg0, String arg1,
+        Map<String, Object> arg2) throws PersistenceException {
         // TODO Auto-generated method stub
         return null;
     }
-
 
     /**
      * DOCUMENT ME!
@@ -118,14 +102,10 @@ public class DynamoDBResourceProvider
      *
      * @throws PersistenceException DOCUMENT ME!
      */
-    public void delete(
-        ResourceResolver arg0,
-        String           arg1)
-      throws PersistenceException
-    {
+    public void delete(ResourceResolver arg0, String arg1)
+        throws PersistenceException {
         // TODO Auto-generated method stub
     }
-
 
     /**
      * DOCUMENT ME!
@@ -135,88 +115,37 @@ public class DynamoDBResourceProvider
      *
      * @return DOCUMENT ME!
      */
-    public Resource getResource(
-        ResourceResolver resolver,
-        String           path)
-    {
+    public Resource getResource(ResourceResolver resolver, String path) {
         Resource resource = null;
 
-        if (path.startsWith(root) && (path.length() > root.length()))
-        {
+        if (path.startsWith(root) && (path.length() > root.length())) {
             String subPath = path.substring(root.length() + 1);
             String[] subPathSplits = subPath.split("/");
             String table = subPathSplits[0];
-            String column = null;
-            String value = null;
 
-            
             ResourceMetadata resourceMetaData = new ResourceMetadata();
             DescribeTableRequest describeTableRequest = new DescribeTableRequest(table);
             DescribeTableResult describeTableResult = dynamoDB.describeTable(describeTableRequest);
-            Date creationDate = describeTableResult.getTable().getCreationDateTime();
+            Date creationDate = describeTableResult.getTable()
+                                                   .getCreationDateTime();
             long itemCount = describeTableResult.getTable().getItemCount();
             resourceMetaData.put("creation-date", creationDate);
-            resourceMetaData.put("recoord-count", itemCount);
-            if (subPathSplits.length > 1 && subPathSplits[1].contains("=") && subPathSplits[1].split("=").length == 2)
-            {
-            	if(subPathSplits[1].startsWith("criteria"))
-            	{
-            		resourceMetaData.put("criteria", subPathSplits[1].split("=")[1]);
-            	}
-            	else
-	            {
-            		ScanRequest scanRequest = new ScanRequest().withTableName(table);
-	                column = subPathSplits[1].split("=")[0];
-	                value = subPathSplits[1].split("=")[1];
-	
-	                Condition condition =
-	                    new Condition().withComparisonOperator(
-	                        ComparisonOperator.EQ.toString())
-	                                   .withAttributeValueList(
-	                        new AttributeValue().withS(value));
-	                scanRequest = scanRequest.addScanFilterEntry(column, condition);
-	                ScanResult scanResult = dynamoDB.scan(scanRequest);
+            resourceMetaData.put("record-count", itemCount);
+            resourceMetaData.put("table-name", table);
 
-
-	                List<Map<String, AttributeValue>> resultList = scanResult.getItems();
-	                if(resultList.size() > 1)
-	                {
-	                	throw new RuntimeException("Ambiguous resource request");
-	                }
-
-	                int rowNum = 0;
-	                Map<String, AttributeValue> result = resultList.get(0);
-	                JSONObject row = new JSONObject();
-
-	                for (Map.Entry<String, AttributeValue> item : result.entrySet())
-	                {
-	                    String attributeName = item.getKey();
-	                    AttributeValue attributeValue = item.getValue();
-
-	                    try
-	                    {
-	                        row.put(attributeName, attributeValue.getS());
-	                    }
-	                    catch (JSONException e)
-	                    {
-	                        // TODO Auto-generated catch block
-	                        e.printStackTrace();
-	                    }
-	                }
-
-	                resourceMetaData.put(Integer.toString(rowNum++), row);
-
-	            }
+            if ((subPathSplits.length > 1) && subPathSplits[1].contains("=") &&
+                    (subPathSplits[1].split("=").length == 2)) {
+                if (subPathSplits[1].startsWith("criteria")) {
+                    resourceMetaData.put("criteria",
+                        subPathSplits[1].split("=")[1]);
+                }
             }
 
-
-
-            resource = new SyntheticResource(resolver, resourceMetaData, resourceType);
+            resource = new SyntheticResource(resolver, path, resourceType);
         }
 
         return resource;
     }
-
 
     /**
      * DOCUMENT ME!
@@ -229,14 +158,10 @@ public class DynamoDBResourceProvider
      *
      * @throws UnsupportedOperationException DOCUMENT ME!
      */
-    public Resource getResource(
-        ResourceResolver   arg0,
-        HttpServletRequest arg1,
-        String             arg2)
-    {
+    public Resource getResource(ResourceResolver arg0, HttpServletRequest arg1,
+        String arg2) {
         throw new UnsupportedOperationException();
     }
-
 
     /**
      * DOCUMENT ME!
@@ -245,12 +170,10 @@ public class DynamoDBResourceProvider
      *
      * @return DOCUMENT ME!
      */
-    public boolean hasChanges(ResourceResolver arg0)
-    {
+    public boolean hasChanges(ResourceResolver arg0) {
         // TODO Auto-generated method stub
         return false;
     }
-
 
     /**
      * DOCUMENT ME!
@@ -261,19 +184,81 @@ public class DynamoDBResourceProvider
      *
      * @throws UnsupportedOperationException DOCUMENT ME!
      */
-    public Iterator<Resource> listChildren(Resource arg0)
-    {
-        throw new UnsupportedOperationException();
-    }
+    public Iterator<Resource> listChildren(Resource resource) {
+        List<Resource> children = new ArrayList<Resource>();
+        ResourceMetadata metaData = resource.getResourceMetadata();
+        String table = "my-favorite-movies-table"; //(String) metaData.get("table-name");
+        String criteria = (String) metaData.get("criteria");
+        ScanRequest scanRequest = new ScanRequest().withTableName(table);
 
+        if (criteria != null) {
+            JSONObject criteriaObj = null;
+
+            try {
+                criteriaObj = new JSONObject(criteria);
+            } catch (JSONException e) {
+                // TODO Auto-generated catch block
+                e.printStackTrace();
+            }
+
+            Iterator<String> keyItr = criteriaObj.keys();
+
+            while (keyItr.hasNext()) {
+                String column = keyItr.next();
+                String value = null;
+
+                try {
+                    value = criteriaObj.getString(column);
+                } catch (JSONException e) {
+                    // TODO Auto-generated catch block
+                    e.printStackTrace();
+                }
+
+                Condition condition = new Condition().withComparisonOperator(ComparisonOperator.EQ.toString())
+                                                     .withAttributeValueList(new AttributeValue().withS(
+                            value));
+                scanRequest = scanRequest.addScanFilterEntry(column, condition);
+            }
+        }
+
+        ScanResult scanResult = dynamoDB.scan(scanRequest);
+
+        List<Map<String, AttributeValue>> resultList = scanResult.getItems();
+
+        int rowNum = 0;
+
+        for (Map<String, AttributeValue> result : resultList) {
+            JSONObject row = new JSONObject();
+
+            for (Map.Entry<String, AttributeValue> item : result.entrySet()) {
+                String attributeName = item.getKey();
+                AttributeValue attributeValue = item.getValue();
+
+                try {
+                    row.put(attributeName, attributeValue.getS());
+                } catch (JSONException e) {
+                    // TODO Auto-generated catch block
+                    e.printStackTrace();
+                }
+
+            }
+            ResourceMetadata resourceMetaData = new ResourceMetadata();
+            resourceMetaData.put(Integer.toString(rowNum++), row);
+            children.add(new SyntheticResource(
+                    resource.getResourceResolver(), resourceMetaData,
+                    RESOURCE_TYPE_SYNTHETIC));
+
+        }
+
+        return children.iterator();
+    }
 
     /**
      * DOCUMENT ME!
      *
      * @param arg0 DOCUMENT ME!
      */
-    public void revert(ResourceResolver arg0)
-    {
+    public void revert(ResourceResolver arg0) {
         // TODO Auto-generated method stub
     }
 }
