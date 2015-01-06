@@ -132,6 +132,7 @@ public class DynamoDBResourceProvider implements ResourceProvider,
             resourceMetaData.put("creation-date", creationDate);
             resourceMetaData.put("record-count", itemCount);
             resourceMetaData.put("table-name", table);
+            resourceMetaData.setResolutionPath(path);
 
             if ((subPathSplits.length > 1) && subPathSplits[1].contains("=") &&
                     (subPathSplits[1].split("=").length == 2)) {
@@ -141,7 +142,7 @@ public class DynamoDBResourceProvider implements ResourceProvider,
                 }
             }
 
-            resource = new SyntheticResource(resolver, path, resourceType);
+            resource = new SyntheticResource(resolver, resourceMetaData, resourceType);
         }
 
         return resource;
@@ -187,7 +188,7 @@ public class DynamoDBResourceProvider implements ResourceProvider,
     public Iterator<Resource> listChildren(Resource resource) {
         List<Resource> children = new ArrayList<Resource>();
         ResourceMetadata metaData = resource.getResourceMetadata();
-        String table = "my-favorite-movies-table"; //(String) metaData.get("table-name");
+        String table = (String) metaData.get("table-name");
         String criteria = (String) metaData.get("criteria");
         ScanRequest scanRequest = new ScanRequest().withTableName(table);
 
@@ -235,7 +236,7 @@ public class DynamoDBResourceProvider implements ResourceProvider,
                 AttributeValue attributeValue = item.getValue();
 
                 try {
-                    row.put(attributeName, attributeValue.getS());
+                    row.put(attributeName, attributeValue);
                 } catch (JSONException e) {
                     // TODO Auto-generated catch block
                     e.printStackTrace();
@@ -244,6 +245,7 @@ public class DynamoDBResourceProvider implements ResourceProvider,
             }
             ResourceMetadata resourceMetaData = new ResourceMetadata();
             resourceMetaData.put(Integer.toString(rowNum++), row);
+            resourceMetaData.setResolutionPath(resource.getPath() + "/" + rowNum);
             children.add(new SyntheticResource(
                     resource.getResourceResolver(), resourceMetaData,
                     RESOURCE_TYPE_SYNTHETIC));
