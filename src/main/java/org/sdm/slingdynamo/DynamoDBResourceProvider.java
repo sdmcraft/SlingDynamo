@@ -10,17 +10,13 @@
  */
 package org.sdm.slingdynamo;
 
-import com.amazonaws.services.dynamodbv2.AmazonDynamoDBClient;
-import com.amazonaws.services.dynamodbv2.model.AttributeValue;
-import com.amazonaws.services.dynamodbv2.model.ComparisonOperator;
-import com.amazonaws.services.dynamodbv2.model.Condition;
-import com.amazonaws.services.dynamodbv2.model.DescribeTableRequest;
-import com.amazonaws.services.dynamodbv2.model.DescribeTableResult;
-import com.amazonaws.services.dynamodbv2.model.ScanRequest;
-import com.amazonaws.services.dynamodbv2.model.ScanResult;
+import java.util.ArrayList;
+import java.util.Date;
+import java.util.Iterator;
+import java.util.List;
+import java.util.Map;
 
-import com.amazonaws.util.json.JSONException;
-import com.amazonaws.util.json.JSONObject;
+import javax.servlet.http.HttpServletRequest;
 
 import org.apache.sling.api.resource.ModifyingResourceProvider;
 import org.apache.sling.api.resource.PersistenceException;
@@ -30,13 +26,16 @@ import org.apache.sling.api.resource.ResourceProvider;
 import org.apache.sling.api.resource.ResourceResolver;
 import org.apache.sling.api.resource.SyntheticResource;
 
-import java.util.ArrayList;
-import java.util.Date;
-import java.util.Iterator;
-import java.util.List;
-import java.util.Map;
-
-import javax.servlet.http.HttpServletRequest;
+import com.amazonaws.services.dynamodbv2.AmazonDynamoDBClient;
+import com.amazonaws.services.dynamodbv2.model.AttributeValue;
+import com.amazonaws.services.dynamodbv2.model.ComparisonOperator;
+import com.amazonaws.services.dynamodbv2.model.Condition;
+import com.amazonaws.services.dynamodbv2.model.DescribeTableRequest;
+import com.amazonaws.services.dynamodbv2.model.DescribeTableResult;
+import com.amazonaws.services.dynamodbv2.model.ScanRequest;
+import com.amazonaws.services.dynamodbv2.model.ScanResult;
+import com.amazonaws.util.json.JSONException;
+import com.amazonaws.util.json.JSONObject;
 
 
 /**

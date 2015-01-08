@@ -1,5 +1,5 @@
 {
         // Properties are represented as json properties
         "jcr:primaryType":"nt:unstructured",
-        "sling:resourceType":"dynamodb/demo"
+        "sling:resourceType":"dynamodb/demo2"
 }

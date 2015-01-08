@@ -46,8 +46,6 @@ import org.apache.sling.commons.osgi.PropertiesUtil;
 @Service
 @Properties({@Property(name = "service.description",value = "Dynamo DB Resource Provider Factory")
     , @Property(name = "service.vendor",value = "sdm.org")
-    , @Property(name = ResourceProvider.ROOTS,value = "/content/dynamodb")
-	, @Property(name=SlingConstants.PROPERTY_RESOURCE_TYPE, value="/apps/dynamodb/render")
 })
 public class DynamoDBResourceProviderFactory
     implements ResourceProviderFactory
@@ -60,6 +58,11 @@ public class DynamoDBResourceProviderFactory
     private static final String PROP_SECRET_ACCESS_KEY = "aws.secret.access.key";
     @Property
     private static final String PROP_REGION = "aws.region";
+    @Property
+    private static final String PROP_ROOTS = ResourceProvider.ROOTS;
+    @Property
+    private static final String PROP_RESOURCE_TYPE = SlingConstants.PROPERTY_RESOURCE_TYPE;
+    
 
     //~ Instance variables ---------------------------------------------------------------
 
@@ -119,11 +122,10 @@ public class DynamoDBResourceProviderFactory
         this.secretAccessKey = PropertiesUtil.toString(
                 config.get(PROP_SECRET_ACCESS_KEY), "");
         this.region = PropertiesUtil.toString(config.get(PROP_REGION), "");
-        this.resourceType = PropertiesUtil.toString(
-                config.get(SlingConstants.PROPERTY_RESOURCE_TYPE), "");
+        
         this.root = PropertiesUtil.toString(config.get(ResourceProvider.ROOTS), "");
         this.resourceType = PropertiesUtil.toString(config.get(SlingConstants.PROPERTY_RESOURCE_TYPE), "");
-
+        
         AWSCredentials awsCredentials =
             new BasicAWSCredentials(accessKey, secretAccessKey);
         dynamoDB = new AmazonDynamoDBClient(awsCredentials);
