@@ -12,6 +12,7 @@ package org.sdm.slingdynamo;
 
 import java.util.ArrayList;
 import java.util.Date;
+import java.util.HashMap;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
@@ -25,6 +26,7 @@ import org.apache.sling.api.resource.ResourceMetadata;
 import org.apache.sling.api.resource.ResourceProvider;
 import org.apache.sling.api.resource.ResourceResolver;
 import org.apache.sling.api.resource.SyntheticResource;
+import org.apache.sling.api.wrappers.ValueMapDecorator;
 
 import com.amazonaws.services.dynamodbv2.AmazonDynamoDBClient;
 import com.amazonaws.services.dynamodbv2.model.AttributeValue;
@@ -117,7 +119,7 @@ public class DynamoDBResourceProvider implements ResourceProvider,
     public Resource getResource(ResourceResolver resolver, String path) {
         Resource resource = null;
 
-        if (path.startsWith(root) && (path.length() > root.length())) {
+        if (false && path.startsWith(root) && (path.length() > root.length())) {
             String subPath = path.substring(root.length() + 1);
             String[] subPathSplits = subPath.split("/");
             String table = subPathSplits[0];
@@ -144,7 +146,12 @@ public class DynamoDBResourceProvider implements ResourceProvider,
             resource = new SyntheticResource(resolver, resourceMetaData, resourceType);
         }
 
-        return resource;
+        //return resource;
+    	Map<String, Object> map = new HashMap<String, Object>();
+    	map.put("hello", "world");
+    	ValueMapDecorator valueMap = new ValueMapDecorator(map);
+
+        return new DynamoDBResource(resolver, path,valueMap, resourceType);
     }
 
     /**

@@ -28,11 +28,12 @@ public class DynamoDBDemoServlet extends SlingAllMethodsServlet {
     protected void doGet(SlingHttpServletRequest request,
         SlingHttpServletResponse response) throws IOException {
         Resource resource = request.getResourceResolver().getResource("/content/dynamodb/data");
-        Iterator<Resource> children = resource.getChildren().iterator();
-        while(children.hasNext()){
-        	Resource child = children.next();
-        	LOGGER.info(">>>>>>>>>>" + child);
-        }
+        LOGGER.info(">>>>>>>>>>" + resource);
+//        Iterator<Resource> children = resource.getChildren().iterator();
+//        while(children.hasNext()){
+//        	Resource child = children.next();
+//        	LOGGER.info(">>>>>>>>>>" + child);
+//        }
     }
 
 }
