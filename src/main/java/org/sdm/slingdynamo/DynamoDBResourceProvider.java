@@ -27,6 +27,9 @@ import org.apache.sling.api.resource.ResourceProvider;
 import org.apache.sling.api.resource.ResourceResolver;
 import org.apache.sling.api.resource.SyntheticResource;
 import org.apache.sling.api.wrappers.ValueMapDecorator;
+import org.sdm.slingdynamo.demo.DynamoDBDemoServlet;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import com.amazonaws.services.dynamodbv2.AmazonDynamoDBClient;
 import com.amazonaws.services.dynamodbv2.model.AttributeValue;
@@ -34,6 +37,7 @@ import com.amazonaws.services.dynamodbv2.model.ComparisonOperator;
 import com.amazonaws.services.dynamodbv2.model.Condition;
 import com.amazonaws.services.dynamodbv2.model.DescribeTableRequest;
 import com.amazonaws.services.dynamodbv2.model.DescribeTableResult;
+import com.amazonaws.services.dynamodbv2.model.ResourceNotFoundException;
 import com.amazonaws.services.dynamodbv2.model.ScanRequest;
 import com.amazonaws.services.dynamodbv2.model.ScanResult;
 import com.amazonaws.util.json.JSONException;
@@ -48,6 +52,8 @@ import com.amazonaws.util.json.JSONObject;
  */
 public class DynamoDBResourceProvider implements ResourceProvider,
     ModifyingResourceProvider {
+	private static final Logger LOGGER = LoggerFactory.getLogger(DynamoDBResourceProvider.class);
+	
     private AmazonDynamoDBClient dynamoDB;
     private String resourceType;
     private String root;
@@ -119,22 +125,31 @@ public class DynamoDBResourceProvider implements ResourceProvider,
     public Resource getResource(ResourceResolver resolver, String path) {
         Resource resource = null;
 
-        if (false && path.startsWith(root) && (path.length() > root.length())) {
+        if (!path.contains(".") && path.startsWith(root) && (path.length() > root.length())) {
             String subPath = path.substring(root.length() + 1);
             String[] subPathSplits = subPath.split("/");
             String table = subPathSplits[0];
 
             ResourceMetadata resourceMetaData = new ResourceMetadata();
             DescribeTableRequest describeTableRequest = new DescribeTableRequest(table);
-            DescribeTableResult describeTableResult = dynamoDB.describeTable(describeTableRequest);
+            DescribeTableResult describeTableResult = null;
+            try {
+            	describeTableResult = dynamoDB.describeTable(describeTableRequest);	
+            }
+            catch(ResourceNotFoundException ex) {
+            	LOGGER.info(">>>>>>>>>Table not found:" + table);
+            }
+            
             Date creationDate = describeTableResult.getTable()
                                                    .getCreationDateTime();
             long itemCount = describeTableResult.getTable().getItemCount();
-            resourceMetaData.put("creation-date", creationDate);
-            resourceMetaData.put("record-count", itemCount);
-            resourceMetaData.put("table-name", table);
+            Map<String, Object> map = new HashMap<String, Object>();
+            map.put("creation-date", creationDate);
+            map.put("record-count", itemCount);
+            map.put("table-name", table);
             resourceMetaData.setResolutionPath(path);
-
+            
+            //TODO:SDM This criteria part is useless
             if ((subPathSplits.length > 1) && subPathSplits[1].contains("=") &&
                     (subPathSplits[1].split("=").length == 2)) {
                 if (subPathSplits[1].startsWith("criteria")) {
@@ -142,16 +157,14 @@ public class DynamoDBResourceProvider implements ResourceProvider,
                         subPathSplits[1].split("=")[1]);
                 }
             }
+        	
+        	ValueMapDecorator valueMap = new ValueMapDecorator(map);
 
-            resource = new SyntheticResource(resolver, resourceMetaData, resourceType);
-        }
+            resource = new DynamoDBResource(resolver, path, valueMap, resourceType);
+            //resource = new SyntheticResource(resolver, resourceMetaData, resourceType);
+        } 
 
-        //return resource;
-    	Map<String, Object> map = new HashMap<String, Object>();
-    	map.put("hello", "world");
-    	ValueMapDecorator valueMap = new ValueMapDecorator(map);
-
-        return new DynamoDBResource(resolver, path,valueMap, resourceType);
+        return resource;
     }
 
     /**

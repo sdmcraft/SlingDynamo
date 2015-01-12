@@ -34,7 +34,6 @@ public class DynamoDBResource extends AbstractResource implements Resource {
         
         metadata = new ResourceMetadata();
         metadata.setResolutionPath(path);
-        metadata.setResolutionPathInfo(path.substring(path.indexOf('.')));
     }
     
     @Override
