@@ -12,7 +12,14 @@
 		<dependency>
 			<groupId>com.amazonaws</groupId>
 			<artifactId>aws-java-sdk</artifactId>
-			<version>1.6.9.1</version>
+			<version>1.9.14</version>
+			<scope>system</scope>
+			<systemPath>${project.basedir}/lib/aws-java-sdk-1.9.14.jar</systemPath>
+		</dependency>
+		<dependency>
+			<groupId>joda-time</groupId>
+			<artifactId>joda-time</artifactId>
+			<version>2.6</version>
 		</dependency>
 		<dependency>
 			<groupId>org.apache.httpcomponents</groupId>
@@ -127,7 +134,7 @@
 					<instructions>
 						<Import-Package>*;resolution:=optional</Import-Package>
 						<Export-Package>org.sdm.slingdynamo</Export-Package>
-						<Embed-Dependency>aws-java-sdk,httpcore,httpclient,jackson-databind,jackson-core,jackson-annotations</Embed-Dependency>
+						<Embed-Dependency>aws-java-sdk,httpcore,httpclient,jackson-databind,jackson-core,jackson-annotations,joda-time</Embed-Dependency>
 						<Sling-Initial-Content>
 							SLING-INF/apps/dynamodb;overwrite:=true;path:=/apps/dynamodb,
 							SLING-INF/apps/dynamodb/demo;overwrite:=true;path:=/apps/dynamodb/demo,

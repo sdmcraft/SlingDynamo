@@ -27,11 +27,17 @@ import org.apache.sling.api.resource.ResourceProvider;
 import org.apache.sling.api.resource.ResourceResolver;
 import org.apache.sling.api.resource.SyntheticResource;
 import org.apache.sling.api.wrappers.ValueMapDecorator;
-import org.sdm.slingdynamo.demo.DynamoDBDemoServlet;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import com.amazonaws.services.dynamodbv2.AmazonDynamoDBClient;
+import com.amazonaws.services.dynamodbv2.document.DynamoDB;
+import com.amazonaws.services.dynamodbv2.document.Item;
+import com.amazonaws.services.dynamodbv2.document.ItemCollection;
+import com.amazonaws.services.dynamodbv2.document.QueryOutcome;
+import com.amazonaws.services.dynamodbv2.document.ScanFilter;
+import com.amazonaws.services.dynamodbv2.document.ScanOutcome;
+import com.amazonaws.services.dynamodbv2.document.Table;
 import com.amazonaws.services.dynamodbv2.model.AttributeValue;
 import com.amazonaws.services.dynamodbv2.model.ComparisonOperator;
 import com.amazonaws.services.dynamodbv2.model.Condition;
@@ -54,7 +60,8 @@ public class DynamoDBResourceProvider implements ResourceProvider,
     ModifyingResourceProvider {
 	private static final Logger LOGGER = LoggerFactory.getLogger(DynamoDBResourceProvider.class);
 	
-    private AmazonDynamoDBClient dynamoDB;
+    private AmazonDynamoDBClient dynamoDBClient;
+    private DynamoDB dynamoDB;
     private String resourceType;
     private String root;
 
@@ -62,13 +69,14 @@ public class DynamoDBResourceProvider implements ResourceProvider,
          * Creates a new DynamoDBResourceProvider object.
          *
          * @param root DOCUMENT ME!
-         * @param dynamoDB DOCUMENT ME!
+         * @param dynamoDBClient DOCUMENT ME!
          * @param resourceType DOCUMENT ME!
          */
-    public DynamoDBResourceProvider(String root, AmazonDynamoDBClient dynamoDB,
+    public DynamoDBResourceProvider(String root, AmazonDynamoDBClient dynamoDBClient, DynamoDB dynamoDB,
         String resourceType) {
         super();
         this.root = root;
+        this.dynamoDBClient = dynamoDBClient;
         this.dynamoDB = dynamoDB;
         this.resourceType = resourceType;
     }
@@ -129,36 +137,62 @@ public class DynamoDBResourceProvider implements ResourceProvider,
             String subPath = path.substring(root.length() + 1);
             String[] subPathSplits = subPath.split("/");
             String table = subPathSplits[0];
-
+            Map<String, Object> resourceProps = new HashMap<String, Object>();
             ResourceMetadata resourceMetaData = new ResourceMetadata();
-            DescribeTableRequest describeTableRequest = new DescribeTableRequest(table);
-            DescribeTableResult describeTableResult = null;
-            try {
-            	describeTableResult = dynamoDB.describeTable(describeTableRequest);	
-            }
-            catch(ResourceNotFoundException ex) {
-            	LOGGER.info(">>>>>>>>>Table not found:" + table);
-            }
             
-            Date creationDate = describeTableResult.getTable()
-                                                   .getCreationDateTime();
-            long itemCount = describeTableResult.getTable().getItemCount();
-            Map<String, Object> map = new HashMap<String, Object>();
-            map.put("creation-date", creationDate);
-            map.put("record-count", itemCount);
-            map.put("table-name", table);
-            resourceMetaData.setResolutionPath(path);
-            
-            //TODO:SDM This criteria part is useless
-            if ((subPathSplits.length > 1) && subPathSplits[1].contains("=") &&
-                    (subPathSplits[1].split("=").length == 2)) {
-                if (subPathSplits[1].startsWith("criteria")) {
-                    resourceMetaData.put("criteria",
-                        subPathSplits[1].split("=")[1]);
+            if(subPathSplits.length == 1) {
+                
+                DescribeTableRequest describeTableRequest = new DescribeTableRequest(table);
+                DescribeTableResult describeTableResult = null;
+                try {
+                	describeTableResult = dynamoDBClient.describeTable(describeTableRequest);	
                 }
+                catch(ResourceNotFoundException ex) {
+                	LOGGER.info(">>>>>>>>>Table not found:" + table);
+                }
+                
+                Date creationDate = describeTableResult.getTable()
+                                                       .getCreationDateTime();
+                long itemCount = describeTableResult.getTable().getItemCount();
+                
+                resourceProps.put("creation-date", creationDate);
+                resourceProps.put("record-count", itemCount);
+                resourceProps.put("table-name", table);
+            	
+            } else if(subPathSplits.length == 2) {
+            	String id = subPathSplits[1];
+            	ScanRequest scanRequest = new ScanRequest().withTableName(table);
+            	
+                Condition condition = new Condition().withComparisonOperator(ComparisonOperator.EQ.toString())
+                        .withAttributeValueList(new AttributeValue().withN(id));
+                scanRequest = scanRequest.addScanFilterEntry("id", condition);
+                ScanResult scanResult = dynamoDBClient.scan(scanRequest);
+                Map<String, AttributeValue> result = scanResult.getItems().get(0);
+
+                for (Map.Entry<String, AttributeValue> item : result.entrySet()) {
+                    String attributeName = item.getKey();
+                    AttributeValue attributeValue = item.getValue();
+                    resourceProps.put(attributeName, attributeValue);
+                }
+            }else if(subPathSplits.length > 2) {
+        		Table dbtable = dynamoDB.getTable(table);
+        		int parent = Integer.parseInt(subPathSplits[1]);
+        		Item item = null;
+        		
+            	for(int i = 2; i < subPathSplits.length; i++) {                	
+                	int child = Integer.parseInt(subPathSplits[i]);
+            		ScanFilter parentFilter = new ScanFilter("parent").eq(parent);
+            		ScanFilter childFilter = new ScanFilter("child_id").eq(child);
+            		ItemCollection<ScanOutcome> items = dbtable.scan(parentFilter, childFilter);
+            		Iterator<Item> itemItr = items.iterator();
+            		item = itemItr.next();            		
+            		parent = item.getInt("id");
+            	}
+        		resourceProps = item.asMap();
             }
-        	
-        	ValueMapDecorator valueMap = new ValueMapDecorator(map);
+
+            resourceMetaData.setResolutionPath(path);
+        	ValueMapDecorator valueMap = new ValueMapDecorator(resourceProps);
 
             resource = new DynamoDBResource(resolver, path, valueMap, resourceType);
             //resource = new SyntheticResource(resolver, resourceMetaData, resourceType);
@@ -241,7 +275,7 @@ public class DynamoDBResourceProvider implements ResourceProvider,
             }
         }
 
-        ScanResult scanResult = dynamoDB.scan(scanRequest);
+        ScanResult scanResult = dynamoDBClient.scan(scanRequest);
 
         List<Map<String, AttributeValue>> resultList = scanResult.getItems();
 
@@ -282,4 +316,5 @@ public class DynamoDBResourceProvider implements ResourceProvider,
     public void revert(ResourceResolver arg0) {
         // TODO Auto-generated method stub
     }
+    
 }

@@ -12,11 +12,10 @@ package org.sdm.slingdynamo;
 
 import com.amazonaws.auth.AWSCredentials;
 import com.amazonaws.auth.BasicAWSCredentials;
-
 import com.amazonaws.regions.Region;
 import com.amazonaws.regions.Regions;
-
 import com.amazonaws.services.dynamodbv2.AmazonDynamoDBClient;
+import com.amazonaws.services.dynamodbv2.document.DynamoDB;
 
 import org.osgi.framework.BundleContext;
 
@@ -28,7 +27,6 @@ import org.apache.felix.scr.annotations.Deactivate;
 import org.apache.felix.scr.annotations.Properties;
 import org.apache.felix.scr.annotations.Property;
 import org.apache.felix.scr.annotations.Service;
-
 import org.apache.sling.api.SlingConstants;
 import org.apache.sling.api.resource.LoginException;
 import org.apache.sling.api.resource.ResourceProvider;
@@ -66,7 +64,8 @@ public class DynamoDBResourceProviderFactory
 
     //~ Instance variables ---------------------------------------------------------------
 
-    private AmazonDynamoDBClient dynamoDB;
+    private AmazonDynamoDBClient dynamoDBClient;
+    private DynamoDB dynamoDB;
     private String accessKey = "";
     private String region = "";
     private String resourceType = "";
@@ -87,7 +86,7 @@ public class DynamoDBResourceProviderFactory
     public ResourceProvider getAdministrativeResourceProvider(Map<String, Object> arg0)
       throws LoginException
     {
-        return new DynamoDBResourceProvider(root, dynamoDB, resourceType);
+        return new DynamoDBResourceProvider(root, dynamoDBClient, dynamoDB, resourceType);
     }
 
 
@@ -103,7 +102,7 @@ public class DynamoDBResourceProviderFactory
     public ResourceProvider getResourceProvider(Map<String, Object> arg0)
       throws LoginException
     {
-        return new DynamoDBResourceProvider(root, dynamoDB, resourceType);
+        return new DynamoDBResourceProvider(root, dynamoDBClient, dynamoDB, resourceType);
     }
 
 
@@ -128,10 +127,12 @@ public class DynamoDBResourceProviderFactory
         
         AWSCredentials awsCredentials =
             new BasicAWSCredentials(accessKey, secretAccessKey);
-        dynamoDB = new AmazonDynamoDBClient(awsCredentials);
+        dynamoDBClient = new AmazonDynamoDBClient(awsCredentials);
 
         Region awsRegion = Region.getRegion(Regions.fromName(region));
-        dynamoDB.setRegion(awsRegion);
+        dynamoDBClient.setRegion(awsRegion);
+        
+        dynamoDB = new DynamoDB(dynamoDBClient);
     }
 
 
@@ -146,6 +147,6 @@ public class DynamoDBResourceProviderFactory
         BundleContext       context,
         Map<String, Object> config)
     {
-        dynamoDB.shutdown();
+        dynamoDBClient.shutdown();
     }
 }
