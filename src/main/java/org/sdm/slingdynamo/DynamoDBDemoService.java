@@ -10,36 +10,29 @@
  */
 package org.sdm.slingdynamo;
 
-/**
- * DOCUMENT ME!
- *
- * @author $author$
- * @version $Revision: 1.3 $
-  */
-public interface DynamoDBDemoService
-{
-    //~ Methods --------------------------------------------------------------------------
 
+// TODO: Auto-generated Javadoc
+/**
+ * The Interface DynamoDBDemoService.
+ */
+public interface DynamoDBDemoService {
     /**
-     * DOCUMENT ME!
+     * Creates the.
      */
     public void create();
 
-
     /**
-     * DOCUMENT ME!
+     * Delete.
      */
     public void delete();
 
-
     /**
-     * DOCUMENT ME!
+     * Fetch.
      */
     public void fetch();
 
-
     /**
-     * DOCUMENT ME!
+     * Update.
      */
     public void update();
 }

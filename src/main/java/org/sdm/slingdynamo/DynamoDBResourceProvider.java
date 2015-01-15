@@ -10,31 +10,10 @@
  */
 package org.sdm.slingdynamo;
 
-import java.util.ArrayList;
-import java.util.Date;
-import java.util.HashMap;
-import java.util.Iterator;
-import java.util.List;
-import java.util.Map;
-
-import javax.servlet.http.HttpServletRequest;
-
-import org.apache.sling.api.resource.ModifyingResourceProvider;
-import org.apache.sling.api.resource.PersistenceException;
-import org.apache.sling.api.resource.Resource;
-import org.apache.sling.api.resource.ResourceMetadata;
-import org.apache.sling.api.resource.ResourceProvider;
-import org.apache.sling.api.resource.ResourceResolver;
-import org.apache.sling.api.resource.SyntheticResource;
-import org.apache.sling.api.wrappers.ValueMapDecorator;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-
 import com.amazonaws.services.dynamodbv2.AmazonDynamoDBClient;
 import com.amazonaws.services.dynamodbv2.document.DynamoDB;
 import com.amazonaws.services.dynamodbv2.document.Item;
 import com.amazonaws.services.dynamodbv2.document.ItemCollection;
-import com.amazonaws.services.dynamodbv2.document.QueryOutcome;
 import com.amazonaws.services.dynamodbv2.document.ScanFilter;
 import com.amazonaws.services.dynamodbv2.document.ScanOutcome;
 import com.amazonaws.services.dynamodbv2.document.Table;
@@ -43,36 +22,72 @@ import com.amazonaws.services.dynamodbv2.model.ComparisonOperator;
 import com.amazonaws.services.dynamodbv2.model.Condition;
 import com.amazonaws.services.dynamodbv2.model.DescribeTableRequest;
 import com.amazonaws.services.dynamodbv2.model.DescribeTableResult;
-import com.amazonaws.services.dynamodbv2.model.ResourceNotFoundException;
 import com.amazonaws.services.dynamodbv2.model.ScanRequest;
 import com.amazonaws.services.dynamodbv2.model.ScanResult;
+
 import com.amazonaws.util.json.JSONException;
 import com.amazonaws.util.json.JSONObject;
 
+import org.apache.sling.api.SlingConstants;
+import org.apache.sling.api.resource.ModifyingResourceProvider;
+import org.apache.sling.api.resource.PersistenceException;
+import org.apache.sling.api.resource.Resource;
+import org.apache.sling.api.resource.ResourceMetadata;
+import org.apache.sling.api.resource.ResourceProvider;
+import org.apache.sling.api.resource.ResourceResolver;
+import org.apache.sling.api.resource.SyntheticResource;
+import org.apache.sling.api.resource.ValueMap;
+import org.apache.sling.api.wrappers.ValueMapDecorator;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
+import java.math.BigDecimal;
+
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.Date;
+import java.util.HashMap;
+import java.util.Iterator;
+import java.util.List;
+import java.util.Map;
+import java.util.Map.Entry;
+import java.util.Set;
+
+import javax.servlet.http.HttpServletRequest;
+
+
+// TODO: Auto-generated Javadoc
 /**
- * DOCUMENT ME!
- *
- * @author $Satya Deep Maheshwari$
- * @version $Revision: 1.0 $
+ * The Class DynamoDBResourceProvider.
  */
 public class DynamoDBResourceProvider implements ResourceProvider,
     ModifyingResourceProvider {
-	private static final Logger LOGGER = LoggerFactory.getLogger(DynamoDBResourceProvider.class);
-	
+    /** The Constant LOGGER. */
+    private static final Logger LOGGER = LoggerFactory.getLogger(DynamoDBResourceProvider.class);
+
+    /** The dynamo db client. */
     private AmazonDynamoDBClient dynamoDBClient;
+
+    /** The dynamo db. */
     private DynamoDB dynamoDB;
+
+    /** The resource type. */
     private String resourceType;
+
+    /** The root. */
     private String root;
 
     /**
-         * Creates a new DynamoDBResourceProvider object.
-         *
-         * @param root DOCUMENT ME!
-         * @param dynamoDBClient DOCUMENT ME!
-         * @param resourceType DOCUMENT ME!
-         */
-    public DynamoDBResourceProvider(String root, AmazonDynamoDBClient dynamoDBClient, DynamoDB dynamoDB,
+     * Instantiates a new dynamo db resource provider.
+     *
+     * @param root the root
+     * @param dynamoDBClient the dynamo db client
+     * @param dynamoDB the dynamo db
+     * @param resourceType the resource type
+     */
+    public DynamoDBResourceProvider(String root,
+        AmazonDynamoDBClient dynamoDBClient, DynamoDB dynamoDB,
         String resourceType) {
         super();
         this.root = root;
@@ -81,27 +96,15 @@ public class DynamoDBResourceProvider implements ResourceProvider,
         this.resourceType = resourceType;
     }
 
-    /**
-     * DOCUMENT ME!
-     *
-     * @param arg0 DOCUMENT ME!
-     *
-     * @throws PersistenceException DOCUMENT ME!
+    /* (non-Javadoc)
+     * @see org.apache.sling.api.resource.ModifyingResourceProvider#commit(org.apache.sling.api.resource.ResourceResolver)
      */
     public void commit(ResourceResolver arg0) throws PersistenceException {
         // TODO Auto-generated method stub
     }
 
-    /**
-     * DOCUMENT ME!
-     *
-     * @param arg0 DOCUMENT ME!
-     * @param arg1 DOCUMENT ME!
-     * @param arg2 DOCUMENT ME!
-     *
-     * @return DOCUMENT ME!
-     *
-     * @throws PersistenceException DOCUMENT ME!
+    /* (non-Javadoc)
+     * @see org.apache.sling.api.resource.ModifyingResourceProvider#create(org.apache.sling.api.resource.ResourceResolver, java.lang.String, java.util.Map)
      */
     public Resource create(ResourceResolver arg0, String arg1,
         Map<String, Object> arg2) throws PersistenceException {
@@ -109,212 +112,180 @@ public class DynamoDBResourceProvider implements ResourceProvider,
         return null;
     }
 
-    /**
-     * DOCUMENT ME!
-     *
-     * @param arg0 DOCUMENT ME!
-     * @param arg1 DOCUMENT ME!
-     *
-     * @throws PersistenceException DOCUMENT ME!
+    /* (non-Javadoc)
+     * @see org.apache.sling.api.resource.ModifyingResourceProvider#delete(org.apache.sling.api.resource.ResourceResolver, java.lang.String)
      */
     public void delete(ResourceResolver arg0, String arg1)
         throws PersistenceException {
         // TODO Auto-generated method stub
     }
 
-    /**
-     * DOCUMENT ME!
-     *
-     * @param resolver DOCUMENT ME!
-     * @param path DOCUMENT ME!
-     *
-     * @return DOCUMENT ME!
+    /* (non-Javadoc)
+     * @see org.apache.sling.api.resource.ResourceProvider#getResource(org.apache.sling.api.resource.ResourceResolver, javax.servlet.http.HttpServletRequest, java.lang.String)
      */
-    public Resource getResource(ResourceResolver resolver, String path) {
+    public Resource getResource(ResourceResolver resolver,
+        HttpServletRequest req, String path) {
         Resource resource = null;
+        Map<String, Object> resourceProps = new HashMap<String, Object>();
+        ResourceMetadata resourceMetadata = new ResourceMetadata();
+        resourceMetadata.setResolutionPath(path);
 
-        if (!path.contains(".") && path.startsWith(root) && (path.length() > root.length())) {
+        if (path.equals(root)) {
+            resource = new SyntheticResource(resolver, resourceMetadata,
+                    resourceType);
+        } else if (!path.contains(".")) {
             String subPath = path.substring(root.length() + 1);
             String[] subPathSplits = subPath.split("/");
             String table = subPathSplits[0];
-            Map<String, Object> resourceProps = new HashMap<String, Object>();
-            ResourceMetadata resourceMetaData = new ResourceMetadata();
-            
-            if(subPathSplits.length == 1) {
-                
+            resourceMetadata.put("table", table);
+
+            Table dbtable = dynamoDB.getTable(table);
+
+            if (subPathSplits.length == 1) {
                 DescribeTableRequest describeTableRequest = new DescribeTableRequest(table);
                 DescribeTableResult describeTableResult = null;
-                try {
-                	describeTableResult = dynamoDBClient.describeTable(describeTableRequest);	
-                }
-                catch(ResourceNotFoundException ex) {
-                	LOGGER.info(">>>>>>>>>Table not found:" + table);
-                }
-                
+
+                describeTableResult = dynamoDBClient.describeTable(describeTableRequest);
+
                 Date creationDate = describeTableResult.getTable()
                                                        .getCreationDateTime();
                 long itemCount = describeTableResult.getTable().getItemCount();
-                
+
                 resourceProps.put("creation-date", creationDate);
                 resourceProps.put("record-count", itemCount);
                 resourceProps.put("table-name", table);
-            	
-            } else if(subPathSplits.length == 2) {
-            	String id = subPathSplits[1];
-            	ScanRequest scanRequest = new ScanRequest().withTableName(table);
-            	
-                Condition condition = new Condition().withComparisonOperator(ComparisonOperator.EQ.toString())
-                        .withAttributeValueList(new AttributeValue().withN(id));
-                scanRequest = scanRequest.addScanFilterEntry("id", condition);
-                ScanResult scanResult = dynamoDBClient.scan(scanRequest);
-                Map<String, AttributeValue> result = scanResult.getItems().get(0);
+            } else if (subPathSplits.length == 2) {
+                int id = Integer.parseInt(subPathSplits[1]);
+                ScanFilter idFilter = new ScanFilter("id").eq(id);
+                ItemCollection<ScanOutcome> items = dbtable.scan(idFilter);
+                Iterator<Item> itemItr = items.iterator();
 
-                for (Map.Entry<String, AttributeValue> item : result.entrySet()) {
-                    String attributeName = item.getKey();
-                    AttributeValue attributeValue = item.getValue();
-                    resourceProps.put(attributeName, attributeValue);
+                Item item = itemItr.next();
+                resourceProps = itemToMap(item);
+            } else if (subPathSplits.length > 2) {
+                int parent = Integer.parseInt(subPathSplits[1]);
+                Item item = null;
+
+                for (int i = 2; i < subPathSplits.length; i++) {
+                    int child = Integer.parseInt(subPathSplits[i]);
+                    ScanFilter parentFilter = new ScanFilter("parent").eq(parent);
+                    ScanFilter childFilter = new ScanFilter("child_id").eq(child);
+                    ItemCollection<ScanOutcome> items = dbtable.scan(parentFilter,
+                            childFilter);
+                    Iterator<Item> itemItr = items.iterator();
+                    item = itemItr.next();
+                    parent = item.getInt("id");
                 }
-            }else if(subPathSplits.length > 2) {
-        		Table dbtable = dynamoDB.getTable(table);
-        		int parent = Integer.parseInt(subPathSplits[1]);
-        		Item item = null;
-        		
-            	for(int i = 2; i < subPathSplits.length; i++) {                	
-                	int child = Integer.parseInt(subPathSplits[i]);
-            		ScanFilter parentFilter = new ScanFilter("parent").eq(parent);
-            		ScanFilter childFilter = new ScanFilter("child_id").eq(child);
-            		ItemCollection<ScanOutcome> items = dbtable.scan(parentFilter, childFilter);
-            		Iterator<Item> itemItr = items.iterator();
-            		item = itemItr.next();            		
-            		parent = item.getInt("id");
-            	}
-        		resourceProps = item.asMap();
+
+                resourceProps = itemToMap(item);
             }
 
-            resourceMetaData.setResolutionPath(path);
-        	ValueMapDecorator valueMap = new ValueMapDecorator(resourceProps);
+            ValueMapDecorator valueMap = new ValueMapDecorator(resourceProps);
 
-            resource = new DynamoDBResource(resolver, path, valueMap, resourceType);
-            //resource = new SyntheticResource(resolver, resourceMetaData, resourceType);
-        } 
+            resource = new DynamoDBResource(resolver, resourceMetadata,
+                    valueMap, resourceType);
+        }
 
         return resource;
     }
 
-    /**
-     * DOCUMENT ME!
-     *
-     * @param arg0 DOCUMENT ME!
-     * @param arg1 DOCUMENT ME!
-     * @param arg2 DOCUMENT ME!
-     *
-     * @return DOCUMENT ME!
-     *
-     * @throws UnsupportedOperationException DOCUMENT ME!
+    /* (non-Javadoc)
+     * @see org.apache.sling.api.resource.ResourceProvider#getResource(org.apache.sling.api.resource.ResourceResolver, java.lang.String)
      */
-    public Resource getResource(ResourceResolver arg0, HttpServletRequest arg1,
-        String arg2) {
-        throw new UnsupportedOperationException();
+    public Resource getResource(ResourceResolver resolver, String path) {
+        return getResource(resolver, null, path);
     }
 
-    /**
-     * DOCUMENT ME!
-     *
-     * @param arg0 DOCUMENT ME!
-     *
-     * @return DOCUMENT ME!
+    /* (non-Javadoc)
+     * @see org.apache.sling.api.resource.ModifyingResourceProvider#hasChanges(org.apache.sling.api.resource.ResourceResolver)
      */
     public boolean hasChanges(ResourceResolver arg0) {
         // TODO Auto-generated method stub
         return false;
     }
 
-    /**
-     * DOCUMENT ME!
-     *
-     * @param arg0 DOCUMENT ME!
-     *
-     * @return DOCUMENT ME!
-     *
-     * @throws UnsupportedOperationException DOCUMENT ME!
+    /* (non-Javadoc)
+     * @see org.apache.sling.api.resource.ResourceProvider#listChildren(org.apache.sling.api.resource.Resource)
      */
     public Iterator<Resource> listChildren(Resource resource) {
-        List<Resource> children = new ArrayList<Resource>();
-        ResourceMetadata metaData = resource.getResourceMetadata();
-        String table = (String) metaData.get("table-name");
-        String criteria = (String) metaData.get("criteria");
-        ScanRequest scanRequest = new ScanRequest().withTableName(table);
+        ValueMap parentValueMap = resource.adaptTo(ValueMap.class);
 
-        if (criteria != null) {
-            JSONObject criteriaObj = null;
+        if (!parentValueMap.containsKey("children") ||
+                (parentValueMap.get("children") == null)) {
+            return null;
+        } else {
+            Set<BigDecimal> children = parentValueMap.get("children", Set.class);
+            Iterator<BigDecimal> childIdItr = children.iterator();
 
-            try {
-                criteriaObj = new JSONObject(criteria);
-            } catch (JSONException e) {
-                // TODO Auto-generated catch block
-                e.printStackTrace();
+            Object[] childrenIdsArray = new Object[children.size()];
+            int i = 0;
+
+            while (childIdItr.hasNext()) {
+                childrenIdsArray[i++] = childIdItr.next().intValue();
             }
 
-            Iterator<String> keyItr = criteriaObj.keys();
+            String tableS = (String) resource.getResourceMetadata().get("table");
+            Table dbtable = dynamoDB.getTable(tableS);
 
-            while (keyItr.hasNext()) {
-                String column = keyItr.next();
-                String value = null;
+            List<Resource> childrenResourceList = getChildren(dbtable,
+                    parentValueMap.get("id", Integer.class), childrenIdsArray,
+                    resource.getResourceMetadata().getResolutionPath(),
+                    resource.getResourceResolver());
 
-                try {
-                    value = criteriaObj.getString(column);
-                } catch (JSONException e) {
-                    // TODO Auto-generated catch block
-                    e.printStackTrace();
-                }
-
-                Condition condition = new Condition().withComparisonOperator(ComparisonOperator.EQ.toString())
-                                                     .withAttributeValueList(new AttributeValue().withS(
-                            value));
-                scanRequest = scanRequest.addScanFilterEntry(column, condition);
-            }
+            return childrenResourceList.iterator();
         }
-
-        ScanResult scanResult = dynamoDBClient.scan(scanRequest);
-
-        List<Map<String, AttributeValue>> resultList = scanResult.getItems();
-
-        int rowNum = 0;
-
-        for (Map<String, AttributeValue> result : resultList) {
-            JSONObject row = new JSONObject();
-
-            for (Map.Entry<String, AttributeValue> item : result.entrySet()) {
-                String attributeName = item.getKey();
-                AttributeValue attributeValue = item.getValue();
-
-                try {
-                    row.put(attributeName, attributeValue);
-                } catch (JSONException e) {
-                    // TODO Auto-generated catch block
-                    e.printStackTrace();
-                }
-
-            }
-            ResourceMetadata resourceMetaData = new ResourceMetadata();
-            resourceMetaData.put(Integer.toString(rowNum++), row);
-            resourceMetaData.setResolutionPath(resource.getPath() + "/" + rowNum);
-            children.add(new SyntheticResource(
-                    resource.getResourceResolver(), resourceMetaData,
-                    RESOURCE_TYPE_SYNTHETIC));
-
-        }
-
-        return children.iterator();
     }
 
-    /**
-     * DOCUMENT ME!
-     *
-     * @param arg0 DOCUMENT ME!
+    /* (non-Javadoc)
+     * @see org.apache.sling.api.resource.ModifyingResourceProvider#revert(org.apache.sling.api.resource.ResourceResolver)
      */
     public void revert(ResourceResolver arg0) {
         // TODO Auto-generated method stub
     }
-    
+
+    private List<Resource> getChildren(Table dbtable, int parent,
+        Object[] childIds, String path, ResourceResolver resolver) {
+        ScanFilter idFilter = new ScanFilter("parent").in(parent);
+        ScanFilter childIdsFilter = new ScanFilter("child_id").in(childIds);
+        ItemCollection<ScanOutcome> items = dbtable.scan(idFilter,
+                childIdsFilter);
+        Iterator<Item> itemItr = items.iterator();
+        List<Resource> children = new ArrayList<Resource>();
+
+        while (itemItr.hasNext()) {
+            Item item = itemItr.next();
+            Iterable<Entry<String, Object>> attributes = item.attributes();
+            Iterator<Entry<String, Object>> attributesItr = attributes.iterator();
+            Map<String, Object> resourceProps = new HashMap<String, Object>();
+
+            while (attributesItr.hasNext()) {
+                Entry<String, Object> attribute = attributesItr.next();
+                resourceProps.put(attribute.getKey(), attribute.getValue());
+            }
+
+            ValueMapDecorator valueMap = new ValueMapDecorator(resourceProps);
+            ResourceMetadata resourceMetadata = new ResourceMetadata();
+            resourceMetadata.setResolutionPath(path + '/' +
+                resourceProps.get("child_id"));
+            resourceMetadata.put("table", dbtable.getTableName());
+
+            children.add(new DynamoDBResource(resolver, resourceMetadata,
+                    valueMap, resourceType));
+        }
+
+        return children;
+    }
+
+    private Map<String, Object> itemToMap(Item item) {
+        Map<String, Object> resourceProps = new HashMap<String, Object>();
+        Iterable<Entry<String, Object>> attributes = item.attributes();
+        Iterator<Entry<String, Object>> attributesItr = attributes.iterator();
+
+        while (attributesItr.hasNext()) {
+            Entry<String, Object> attribute = attributesItr.next();
+            resourceProps.put(attribute.getKey(), attribute.getValue());
+        }
+
+        return resourceProps;
+    }
 }

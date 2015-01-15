@@ -12,10 +12,13 @@ package org.sdm.slingdynamo;
 
 import com.amazonaws.AmazonClientException;
 import com.amazonaws.AmazonServiceException;
+
 import com.amazonaws.auth.AWSCredentials;
 import com.amazonaws.auth.BasicAWSCredentials;
+
 import com.amazonaws.regions.Region;
 import com.amazonaws.regions.Regions;
+
 import com.amazonaws.services.dynamodbv2.AmazonDynamoDBClient;
 import com.amazonaws.services.dynamodbv2.model.AttributeDefinition;
 import com.amazonaws.services.dynamodbv2.model.AttributeValue;
@@ -42,20 +45,24 @@ import java.util.Map;
 import java.util.Scanner;
 
 
+// TODO: Auto-generated Javadoc
 /**
- * Hello world!
+ * The Class App.
  */
-public class App
-{
+public class App {
+    /** The dynamo db. */
     static AmazonDynamoDBClient dynamoDB;
+
+    /** The access key. */
     static String accessKey;
+
+    /** The secret access key. */
     static String secretAccessKey;
 
     /**
-     * DOCUMENT ME!
+     * Inits the.
      */
-    public static void init()
-    {
+    public static void init() {
         Scanner reader = new Scanner(System.in);
         System.out.println("Enter access key:");
 
@@ -68,7 +75,8 @@ public class App
 
         reader.close();
 
-        AWSCredentials awsCredentials = new BasicAWSCredentials(accessKey, secretAccessKey);
+        AWSCredentials awsCredentials = new BasicAWSCredentials(accessKey,
+                secretAccessKey);
         dynamoDB = new AmazonDynamoDBClient(awsCredentials);
 
         Region usWest2 = Region.getRegion(Regions.US_WEST_2);
@@ -76,25 +84,27 @@ public class App
     }
 
     /**
-     * DOCUMENT ME!
+     * Main1.
      *
-     * @param args DOCUMENT ME!
-     *
-     * @throws Exception DOCUMENT ME!
+     * @param args the args
+     * @throws Exception the exception
      */
-    public static void main1(String[] args) throws Exception
-    {
+    public static void main1(String[] args) throws Exception {
         init();
 
-        try
-        {
+        try {
             String tableName = "my-favorite-movies-table";
 
             // Create a table with a primary hash key named 'name', which holds a string
-            CreateTableRequest createTableRequest = new CreateTableRequest().withTableName(tableName).withKeySchema(new KeySchemaElement().withAttributeName("name").withKeyType(KeyType.HASH))
-                                                                            .withAttributeDefinitions(new AttributeDefinition().withAttributeName("name").withAttributeType(ScalarAttributeType.S))
-                                                                            .withProvisionedThroughput(new ProvisionedThroughput().withReadCapacityUnits(1L).withWriteCapacityUnits(1L));
-            TableDescription createdTableDescription = dynamoDB.createTable(createTableRequest).getTableDescription();
+            CreateTableRequest createTableRequest = new CreateTableRequest().withTableName(tableName)
+                                                                            .withKeySchema(new KeySchemaElement().withAttributeName(
+                        "name").withKeyType(KeyType.HASH))
+                                                                            .withAttributeDefinitions(new AttributeDefinition().withAttributeName(
+                        "name").withAttributeType(ScalarAttributeType.S))
+                                                                            .withProvisionedThroughput(new ProvisionedThroughput().withReadCapacityUnits(
+                        1L).withWriteCapacityUnits(1L));
+            TableDescription createdTableDescription = dynamoDB.createTable(createTableRequest)
+                                                               .getTableDescription();
             System.out.println("Created Table: " + createdTableDescription);
 
             // Wait for it to become active
@@ -102,11 +112,13 @@ public class App
 
             // Describe our new table
             DescribeTableRequest describeTableRequest = new DescribeTableRequest().withTableName(tableName);
-            TableDescription tableDescription = dynamoDB.describeTable(describeTableRequest).getTable();
+            TableDescription tableDescription = dynamoDB.describeTable(describeTableRequest)
+                                                        .getTable();
             System.out.println("Table Description: " + tableDescription);
 
             // Add an item
-            Map<String, AttributeValue> item = newItem("Bill & Ted's Excellent Adventure", 1989, "****", "James", "Sara");
+            Map<String, AttributeValue> item = newItem("Bill & Ted's Excellent Adventure",
+                    1989, "****", "James", "Sara");
             PutItemRequest putItemRequest = new PutItemRequest(tableName, item);
             PutItemResult putItemResult = dynamoDB.putItem(putItemRequest);
             System.out.println("Result: " + putItemResult);
@@ -119,32 +131,43 @@ public class App
 
             // Scan items for movies with a year attribute greater than 1985
             HashMap<String, Condition> scanFilter = new HashMap<String, Condition>();
-            Condition condition = new Condition().withComparisonOperator(ComparisonOperator.GT.toString()).withAttributeValueList(new AttributeValue().withN("1985"));
+            Condition condition = new Condition().withComparisonOperator(ComparisonOperator.GT.toString())
+                                                 .withAttributeValueList(new AttributeValue().withN(
+                        "1985"));
             scanFilter.put("year", condition);
 
             ScanRequest scanRequest = new ScanRequest(tableName).withScanFilter(scanFilter);
             ScanResult scanResult = dynamoDB.scan(scanRequest);
             System.out.println("Result: " + scanResult);
-        }
-        catch (AmazonServiceException ase)
-        {
-            System.out.println("Caught an AmazonServiceException, which means your request made it " + "to AWS, but was rejected with an error response for some reason.");
+        } catch (AmazonServiceException ase) {
+            System.out.println(
+                "Caught an AmazonServiceException, which means your request made it " +
+                "to AWS, but was rejected with an error response for some reason.");
             System.out.println("Error Message:    " + ase.getMessage());
             System.out.println("HTTP Status Code: " + ase.getStatusCode());
             System.out.println("AWS Error Code:   " + ase.getErrorCode());
             System.out.println("Error Type:       " + ase.getErrorType());
             System.out.println("Request ID:       " + ase.getRequestId());
-        }
-        catch (AmazonClientException ace)
-        {
-            System.out.println("Caught an AmazonClientException, which means the client encountered " + "a serious internal problem while trying to communicate with AWS, " +
+        } catch (AmazonClientException ace) {
+            System.out.println(
+                "Caught an AmazonClientException, which means the client encountered " +
+                "a serious internal problem while trying to communicate with AWS, " +
                 "such as not being able to access the network.");
             System.out.println("Error Message: " + ace.getMessage());
         }
     }
 
-    private static Map<String, AttributeValue> newItem(String name, int year, String rating, String... fans)
-    {
+    /**
+     * New item.
+     *
+     * @param name the name
+     * @param year the year
+     * @param rating the rating
+     * @param fans the fans
+     * @return the map
+     */
+    private static Map<String, AttributeValue> newItem(String name, int year,
+        String rating, String... fans) {
         Map<String, AttributeValue> item = new HashMap<String, AttributeValue>();
         item.put("name", new AttributeValue(name));
         item.put("year", new AttributeValue().withN(Integer.toString(year)));
@@ -154,40 +177,37 @@ public class App
         return item;
     }
 
-    private static void waitForTableToBecomeAvailable(String tableName)
-    {
+    /**
+     * Wait for table to become available.
+     *
+     * @param tableName the table name
+     */
+    private static void waitForTableToBecomeAvailable(String tableName) {
         System.out.println("Waiting for " + tableName + " to become ACTIVE...");
 
         long startTime = System.currentTimeMillis();
         long endTime = startTime + (10 * 60 * 1000);
 
-        while (System.currentTimeMillis() < endTime)
-        {
-            try
-            {
+        while (System.currentTimeMillis() < endTime) {
+            try {
                 Thread.sleep(1000 * 20);
-            }
-            catch (Exception e)
-            {
+            } catch (Exception e) {
                 ;
             }
 
-            try
-            {
+            try {
                 DescribeTableRequest request = new DescribeTableRequest().withTableName(tableName);
-                TableDescription tableDescription = dynamoDB.describeTable(request).getTable();
+                TableDescription tableDescription = dynamoDB.describeTable(request)
+                                                            .getTable();
                 String tableStatus = tableDescription.getTableStatus();
                 System.out.println("  - current state: " + tableStatus);
 
-                if (tableStatus.equals(TableStatus.ACTIVE.toString()))
-                {
+                if (tableStatus.equals(TableStatus.ACTIVE.toString())) {
                     return;
                 }
-            }
-            catch (AmazonServiceException ase)
-            {
-                if (ase.getErrorCode().equalsIgnoreCase("ResourceNotFoundException") == false)
-                {
+            } catch (AmazonServiceException ase) {
+                if (ase.getErrorCode()
+                           .equalsIgnoreCase("ResourceNotFoundException") == false) {
                     throw ase;
                 }
             }
@@ -196,14 +216,21 @@ public class App
         throw new RuntimeException("Table " + tableName + " never went active");
     }
 
-    public static void main2(String[] args)
-    {
+    /**
+     * Main2.
+     *
+     * @param args the args
+     */
+    public static void main2(String[] args) {
         init();
 
         Map<String, AttributeValue> key = new HashMap<String, AttributeValue>();
         key.put("name", new AttributeValue().withS("Airplane"));
 
-        GetItemRequest getItemRequest = new GetItemRequest().withTableName("my-favorite-movies-table").withKey(key).withAttributesToGet(Arrays.asList("name", "fans", "rating", "year"));
+        GetItemRequest getItemRequest = new GetItemRequest().withTableName(
+                "my-favorite-movies-table").withKey(key)
+                                                            .withAttributesToGet(Arrays.asList(
+                    "name", "fans", "rating", "year"));
 
         GetItemResult result = dynamoDB.getItem(getItemRequest);
 
@@ -212,20 +239,32 @@ public class App
         printItem(result.getItem());
     }
 
-    private static void printItem(Map<String, AttributeValue> attributeList)
-    {
-        for (Map.Entry<String, AttributeValue> item : attributeList.entrySet())
-        {
+    /**
+     * Prints the item.
+     *
+     * @param attributeList the attribute list
+     */
+    private static void printItem(Map<String, AttributeValue> attributeList) {
+        for (Map.Entry<String, AttributeValue> item : attributeList.entrySet()) {
             String attributeName = item.getKey();
             AttributeValue value = item.getValue();
-            System.out.println(attributeName + " " + ((value.getS() == null) ? "" : ("S=[" + value.getS() + "]")) + ((value.getN() == null) ? "" : ("N=[" + value.getN() + "]")) +
-                ((value.getB() == null) ? "" : ("B=[" + value.getB() + "]")) + ((value.getSS() == null) ? "" : ("SS=[" + value.getSS() + "]")) +
-                ((value.getNS() == null) ? "" : ("NS=[" + value.getNS() + "]")) + ((value.getBS() == null) ? "" : ("BS=[" + value.getBS() + "] \n")));
+            System.out.println(attributeName + " " +
+                ((value.getS() == null) ? "" : ("S=[" + value.getS() + "]")) +
+                ((value.getN() == null) ? "" : ("N=[" + value.getN() + "]")) +
+                ((value.getB() == null) ? "" : ("B=[" + value.getB() + "]")) +
+                ((value.getSS() == null) ? "" : ("SS=[" + value.getSS() + "]")) +
+                ((value.getNS() == null) ? "" : ("NS=[" + value.getNS() + "]")) +
+                ((value.getBS() == null) ? "" : ("BS=[" + value.getBS() +
+                "] \n")));
         }
     }
 
-    public static void main(String[] args)
-    {
+    /**
+     * The main method.
+     *
+     * @param args the arguments
+     */
+    public static void main(String[] args) {
         String path = "/abc/pqr/123/456";
         String root = "/abc/pqr";
         String subPath = path.substring(root.length() + 1);
@@ -234,13 +273,11 @@ public class App
         String column = null;
         String value = null;
 
-        if (subPathSplits.length > 1)
-        {
+        if (subPathSplits.length > 1) {
             column = subPath.split("/")[1];
         }
 
-        if (subPathSplits.length > 2)
-        {
+        if (subPathSplits.length > 2) {
             value = subPath.split("/")[2];
         }
     }

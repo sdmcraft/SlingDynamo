@@ -12,14 +12,12 @@ package org.sdm.slingdynamo;
 
 import com.amazonaws.auth.AWSCredentials;
 import com.amazonaws.auth.BasicAWSCredentials;
+
 import com.amazonaws.regions.Region;
 import com.amazonaws.regions.Regions;
+
 import com.amazonaws.services.dynamodbv2.AmazonDynamoDBClient;
 import com.amazonaws.services.dynamodbv2.document.DynamoDB;
-
-import org.osgi.framework.BundleContext;
-
-import java.util.Map;
 
 import org.apache.felix.scr.annotations.Activate;
 import org.apache.felix.scr.annotations.Component;
@@ -27,126 +25,123 @@ import org.apache.felix.scr.annotations.Deactivate;
 import org.apache.felix.scr.annotations.Properties;
 import org.apache.felix.scr.annotations.Property;
 import org.apache.felix.scr.annotations.Service;
+
 import org.apache.sling.api.SlingConstants;
 import org.apache.sling.api.resource.LoginException;
 import org.apache.sling.api.resource.ResourceProvider;
 import org.apache.sling.api.resource.ResourceProviderFactory;
 import org.apache.sling.commons.osgi.PropertiesUtil;
 
+import org.osgi.framework.BundleContext;
 
+import java.util.Map;
+
+
+// TODO: Auto-generated Javadoc
 /**
- * DOCUMENT ME!
- *
- * @author $author$
- * @version $Revision: 1.3 $
+ * A factory for creating DynamoDBResourceProvider objects.
  */
 @Component(name = "DynamoDBResourceProviderFactory", label = "DynamoDBResourceProviderFactory", description = "Dynamo DB Resource Provider Factory", immediate = true, metatype = true)
 @Service
 @Properties({@Property(name = "service.description",value = "Dynamo DB Resource Provider Factory")
     , @Property(name = "service.vendor",value = "sdm.org")
 })
-public class DynamoDBResourceProviderFactory
-    implements ResourceProviderFactory
-{
-    //~ Static variables/initializers ----------------------------------------------------
-
+public class DynamoDBResourceProviderFactory implements ResourceProviderFactory {
+    /** The Constant PROP_ACCESS_KEY. */
     @Property
     private static final String PROP_ACCESS_KEY = "aws.access.key";
+
+    /** The Constant PROP_SECRET_ACCESS_KEY. */
     @Property
     private static final String PROP_SECRET_ACCESS_KEY = "aws.secret.access.key";
+
+    /** The Constant PROP_REGION. */
     @Property
     private static final String PROP_REGION = "aws.region";
+
+    /** The Constant PROP_ROOTS. */
     @Property
     private static final String PROP_ROOTS = ResourceProvider.ROOTS;
+
+    /** The Constant PROP_RESOURCE_TYPE. */
     @Property
     private static final String PROP_RESOURCE_TYPE = SlingConstants.PROPERTY_RESOURCE_TYPE;
-    
 
-    //~ Instance variables ---------------------------------------------------------------
-
+    /** The dynamo db client. */
     private AmazonDynamoDBClient dynamoDBClient;
+
+    /** The dynamo db. */
     private DynamoDB dynamoDB;
+
+    /** The access key. */
     private String accessKey = "";
+
+    /** The region. */
     private String region = "";
+
+    /** The resource type. */
     private String resourceType = "";
+
+    /** The root. */
     private String root = "";
+
+    /** The secret access key. */
     private String secretAccessKey = "";
 
-    //~ Methods --------------------------------------------------------------------------
-
-    /**
-     * DOCUMENT ME!
-     *
-     * @param arg0 DOCUMENT ME!
-     *
-     * @return DOCUMENT ME!
-     *
-     * @throws LoginException DOCUMENT ME!
+    /* (non-Javadoc)
+     * @see org.apache.sling.api.resource.ResourceProviderFactory#getAdministrativeResourceProvider(java.util.Map)
      */
-    public ResourceProvider getAdministrativeResourceProvider(Map<String, Object> arg0)
-      throws LoginException
-    {
-        return new DynamoDBResourceProvider(root, dynamoDBClient, dynamoDB, resourceType);
+    public ResourceProvider getAdministrativeResourceProvider(
+        Map<String, Object> arg0) throws LoginException {
+        return new DynamoDBResourceProvider(root, dynamoDBClient, dynamoDB,
+            resourceType);
     }
 
-
-    /**
-     * DOCUMENT ME!
-     *
-     * @param arg0 DOCUMENT ME!
-     *
-     * @return DOCUMENT ME!
-     *
-     * @throws LoginException DOCUMENT ME!
+    /* (non-Javadoc)
+     * @see org.apache.sling.api.resource.ResourceProviderFactory#getResourceProvider(java.util.Map)
      */
     public ResourceProvider getResourceProvider(Map<String, Object> arg0)
-      throws LoginException
-    {
-        return new DynamoDBResourceProvider(root, dynamoDBClient, dynamoDB, resourceType);
+        throws LoginException {
+        return new DynamoDBResourceProvider(root, dynamoDBClient, dynamoDB,
+            resourceType);
     }
 
-
     /**
-     * DOCUMENT ME!
+     * Activate.
      *
-     * @param context DOCUMENT ME!
-     * @param config DOCUMENT ME!
+     * @param context the context
+     * @param config the config
      */
     @Activate
-    protected void activate(
-        BundleContext       context,
-        Map<String, Object> config)
-    {
+    protected void activate(BundleContext context, Map<String, Object> config) {
         this.accessKey = PropertiesUtil.toString(config.get(PROP_ACCESS_KEY), "");
-        this.secretAccessKey = PropertiesUtil.toString(
-                config.get(PROP_SECRET_ACCESS_KEY), "");
+        this.secretAccessKey = PropertiesUtil.toString(config.get(
+                    PROP_SECRET_ACCESS_KEY), "");
         this.region = PropertiesUtil.toString(config.get(PROP_REGION), "");
-        
-        this.root = PropertiesUtil.toString(config.get(ResourceProvider.ROOTS), "");
-        this.resourceType = PropertiesUtil.toString(config.get(SlingConstants.PROPERTY_RESOURCE_TYPE), "");
-        
-        AWSCredentials awsCredentials =
-            new BasicAWSCredentials(accessKey, secretAccessKey);
+
+        this.root = PropertiesUtil.toString(config.get(ResourceProvider.ROOTS),
+                "");
+        this.resourceType = PropertiesUtil.toString(config.get(
+                    SlingConstants.PROPERTY_RESOURCE_TYPE), "");
+
+        AWSCredentials awsCredentials = new BasicAWSCredentials(accessKey,
+                secretAccessKey);
         dynamoDBClient = new AmazonDynamoDBClient(awsCredentials);
 
         Region awsRegion = Region.getRegion(Regions.fromName(region));
         dynamoDBClient.setRegion(awsRegion);
-        
+
         dynamoDB = new DynamoDB(dynamoDBClient);
     }
 
-
     /**
-     * DOCUMENT ME!
+     * Dectivate.
      *
-     * @param context DOCUMENT ME!
-     * @param config DOCUMENT ME!
+     * @param context the context
+     * @param config the config
      */
     @Deactivate
-    protected void dectivate(
-        BundleContext       context,
-        Map<String, Object> config)
-    {
+    protected void dectivate(BundleContext context, Map<String, Object> config) {
         dynamoDBClient.shutdown();
     }
 }
