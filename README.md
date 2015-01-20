@@ -35,7 +35,26 @@ Usage Instructions
   2. Provide your aws access secret in aws.secret.access.key.name
   3. Provide your aws region in aws.region.name. For e.g. 'us-west-2'
   4. Provide the root path under which you would want to  access your dynamo DB resources. For e.g. /content/dynamodb
-6. Now access your dynamodb resource as follows: 
-  http://localhost:8080/content/dynamodb/<table_name>/<id>.json
-  http://localhost:8080/content/dynamodb/<table_name>/<id>.json
-7. 
+6. Now access your dynamodb resource as follows:<br/>
+  http://localhost:8080/content/dynamodb/&lt;table_name&gt;/&lt;id&gt;.json<br/>
+    http://localhost:8080/content/dynamodb/&lt;table_name&gt;/&lt;id&gt;/&lt;child_id1&gt;/&lt;child_id2&gt;/.../&lt;child_idn&gt;.json<br/>
+    For e.g.<br/>
+  http://localhost:8080/content/dynamodb/data/1.json<br/>
+would return<br/>
+<pre>
+{
+id: "1",
+name: "North America",
+children: "[1]"
+}
+</pre>
+http://localhost:8080/content/dynamodb/data/1/1.json<br/>
+<pre>
+{
+id: "3",
+child_id: "1",
+name: "USA",
+parent: "1",
+children: "[1,2]"
+}
+</pre>
