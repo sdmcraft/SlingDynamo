@@ -122,12 +122,6 @@
 			<version>1.0.2</version>
 		</dependency>
 		<dependency>
-			<groupId>junit</groupId>
-			<artifactId>junit</artifactId>
-			<version>3.8.1</version>
-			<scope>test</scope>
-		</dependency>
-		<dependency>
 			<version>1.7.6</version>
 			<groupId>org.slf4j</groupId>
 			<artifactId>slf4j-api</artifactId>
@@ -159,6 +153,7 @@
 							com.sun.java_cup.internal;resolution:=optional,
 							org.joda.convert;resolution:=optional,
 							org.springframework.*;resolution:=optional,
+							org.junit.*;resolution:=optional,
 							*
 						</Import-Package>
 						<Export-Package>org.sdm.slingdynamo</Export-Package>
@@ -173,7 +168,7 @@
 							javax.mail-api,
 							aspectjrt,
 							javax.mail,
-							jaxp-ri
+							jaxp-ri,
 						</Embed-Dependency>
 						<Sling-Initial-Content>
 							SLING-INF/apps/dynamodb;overwrite:=true;path:=/apps/dynamodb,
