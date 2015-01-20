@@ -1,25 +1,23 @@
 package org.sdm.slingdynamo;
 
-import com.amazonaws.util.json.JSONArray;
-import com.amazonaws.util.json.JSONException;
-import com.amazonaws.util.json.JSONObject;
+import java.io.IOException;
+import java.util.Iterator;
+import java.util.Map.Entry;
+
+import javax.servlet.Servlet;
 
 import org.apache.felix.scr.annotations.Component;
 import org.apache.felix.scr.annotations.Properties;
 import org.apache.felix.scr.annotations.Property;
 import org.apache.felix.scr.annotations.Service;
-
 import org.apache.sling.api.SlingHttpServletRequest;
 import org.apache.sling.api.SlingHttpServletResponse;
 import org.apache.sling.api.resource.Resource;
 import org.apache.sling.api.servlets.SlingAllMethodsServlet;
 
-import java.io.IOException;
-
-import java.util.Iterator;
-import java.util.Map.Entry;
-
-import javax.servlet.Servlet;
+import com.amazonaws.util.json.JSONArray;
+import com.amazonaws.util.json.JSONException;
+import com.amazonaws.util.json.JSONObject;
 
 
 // TODO: Auto-generated Javadoc

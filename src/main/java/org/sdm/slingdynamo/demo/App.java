@@ -8,17 +8,19 @@
  *
  * Copyright (c) 2001-2002 Marco Hunsicker
  */
-package org.sdm.slingdynamo;
+package org.sdm.slingdynamo.demo;
+
+import java.util.Arrays;
+import java.util.HashMap;
+import java.util.Map;
+import java.util.Scanner;
 
 import com.amazonaws.AmazonClientException;
 import com.amazonaws.AmazonServiceException;
-
 import com.amazonaws.auth.AWSCredentials;
 import com.amazonaws.auth.BasicAWSCredentials;
-
 import com.amazonaws.regions.Region;
 import com.amazonaws.regions.Regions;
-
 import com.amazonaws.services.dynamodbv2.AmazonDynamoDBClient;
 import com.amazonaws.services.dynamodbv2.model.AttributeDefinition;
 import com.amazonaws.services.dynamodbv2.model.AttributeValue;
@@ -38,11 +40,6 @@ import com.amazonaws.services.dynamodbv2.model.ScanRequest;
 import com.amazonaws.services.dynamodbv2.model.ScanResult;
 import com.amazonaws.services.dynamodbv2.model.TableDescription;
 import com.amazonaws.services.dynamodbv2.model.TableStatus;
-
-import java.util.Arrays;
-import java.util.HashMap;
-import java.util.Map;
-import java.util.Scanner;
 
 
 // TODO: Auto-generated Javadoc

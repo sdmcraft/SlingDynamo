@@ -21,6 +21,23 @@
 			<artifactId>joda-time</artifactId>
 			<version>2.6</version>
 		</dependency>
+
+		<dependency>
+			<groupId>javax.mail</groupId>
+			<artifactId>javax.mail-api</artifactId>
+			<version>1.5.2</version>
+		</dependency>
+		<dependency>
+			<groupId>com.sun.mail</groupId>
+			<artifactId>javax.mail</artifactId>
+			<version>1.5.2</version>
+		</dependency>
+
+		<dependency>
+			<groupId>org.aspectj</groupId>
+			<artifactId>aspectjrt</artifactId>
+			<version>1.8.4</version>
+		</dependency>
 		<dependency>
 			<groupId>org.apache.httpcomponents</groupId>
 			<artifactId>httpcore</artifactId>
@@ -46,6 +63,12 @@
 			<artifactId>jackson-annotations</artifactId>
 			<version>2.1.1</version>
 		</dependency>
+		<dependency>
+			<groupId>com.sun.xml.parsers</groupId>
+			<artifactId>jaxp-ri</artifactId>
+			<version>1.4.5</version>
+		</dependency>
+
 		<dependency>
 			<groupId>org.osgi</groupId>
 			<artifactId>org.osgi.core</artifactId>
@@ -132,9 +155,26 @@
 				<extensions>true</extensions>
 				<configuration>
 					<instructions>
-						<Import-Package>*;resolution:=optional</Import-Package>
+						<Import-Package>
+							com.sun.java_cup.internal;resolution:=optional,
+							org.joda.convert;resolution:=optional,
+							org.springframework.*;resolution:=optional,
+							*
+						</Import-Package>
 						<Export-Package>org.sdm.slingdynamo</Export-Package>
-						<Embed-Dependency>aws-java-sdk,httpcore,httpclient,jackson-databind,jackson-core,jackson-annotations,joda-time</Embed-Dependency>
+						<Embed-Dependency>
+							aws-java-sdk,
+							httpcore,
+							httpclient,
+							jackson-databind,
+							jackson-core,
+							jackson-annotations,
+							joda-time,
+							javax.mail-api,
+							aspectjrt,
+							javax.mail,
+							jaxp-ri
+						</Embed-Dependency>
 						<Sling-Initial-Content>
 							SLING-INF/apps/dynamodb;overwrite:=true;path:=/apps/dynamodb,
 							SLING-INF/apps/dynamodb/demo;overwrite:=true;path:=/apps/dynamodb/demo,

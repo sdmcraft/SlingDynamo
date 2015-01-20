@@ -3,6 +3,8 @@
  */
 package org.sdm.slingdynamo;
 
+import java.util.Map;
+
 import org.apache.sling.api.resource.AbstractResource;
 import org.apache.sling.api.resource.Resource;
 import org.apache.sling.api.resource.ResourceMetadata;
@@ -92,7 +94,7 @@ public class DynamoDBResource extends AbstractResource implements Resource {
     @Override
     @SuppressWarnings("unchecked")
     public <AdapterType> AdapterType adaptTo(Class<AdapterType> type) {
-        if (type == ValueMap.class) {
+        if (type == ValueMap.class || type == Map.class) {
             return (AdapterType) valueMap;
         }
 

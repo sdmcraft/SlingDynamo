@@ -10,42 +10,8 @@
  */
 package org.sdm.slingdynamo;
 
-import com.amazonaws.services.dynamodbv2.AmazonDynamoDBClient;
-import com.amazonaws.services.dynamodbv2.document.DynamoDB;
-import com.amazonaws.services.dynamodbv2.document.Item;
-import com.amazonaws.services.dynamodbv2.document.ItemCollection;
-import com.amazonaws.services.dynamodbv2.document.ScanFilter;
-import com.amazonaws.services.dynamodbv2.document.ScanOutcome;
-import com.amazonaws.services.dynamodbv2.document.Table;
-import com.amazonaws.services.dynamodbv2.model.AttributeValue;
-import com.amazonaws.services.dynamodbv2.model.ComparisonOperator;
-import com.amazonaws.services.dynamodbv2.model.Condition;
-import com.amazonaws.services.dynamodbv2.model.DescribeTableRequest;
-import com.amazonaws.services.dynamodbv2.model.DescribeTableResult;
-import com.amazonaws.services.dynamodbv2.model.ScanRequest;
-import com.amazonaws.services.dynamodbv2.model.ScanResult;
-
-import com.amazonaws.util.json.JSONException;
-import com.amazonaws.util.json.JSONObject;
-
-import org.apache.sling.api.SlingConstants;
-import org.apache.sling.api.resource.ModifyingResourceProvider;
-import org.apache.sling.api.resource.PersistenceException;
-import org.apache.sling.api.resource.Resource;
-import org.apache.sling.api.resource.ResourceMetadata;
-import org.apache.sling.api.resource.ResourceProvider;
-import org.apache.sling.api.resource.ResourceResolver;
-import org.apache.sling.api.resource.SyntheticResource;
-import org.apache.sling.api.resource.ValueMap;
-import org.apache.sling.api.wrappers.ValueMapDecorator;
-
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-
 import java.math.BigDecimal;
-
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.Date;
 import java.util.HashMap;
 import java.util.Iterator;
@@ -55,6 +21,28 @@ import java.util.Map.Entry;
 import java.util.Set;
 
 import javax.servlet.http.HttpServletRequest;
+
+import org.apache.sling.api.resource.ModifyingResourceProvider;
+import org.apache.sling.api.resource.PersistenceException;
+import org.apache.sling.api.resource.Resource;
+import org.apache.sling.api.resource.ResourceMetadata;
+import org.apache.sling.api.resource.ResourceProvider;
+import org.apache.sling.api.resource.ResourceResolver;
+import org.apache.sling.api.resource.SyntheticResource;
+import org.apache.sling.api.resource.ValueMap;
+import org.apache.sling.api.wrappers.ValueMapDecorator;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
+import com.amazonaws.services.dynamodbv2.AmazonDynamoDBClient;
+import com.amazonaws.services.dynamodbv2.document.DynamoDB;
+import com.amazonaws.services.dynamodbv2.document.Item;
+import com.amazonaws.services.dynamodbv2.document.ItemCollection;
+import com.amazonaws.services.dynamodbv2.document.ScanFilter;
+import com.amazonaws.services.dynamodbv2.document.ScanOutcome;
+import com.amazonaws.services.dynamodbv2.document.Table;
+import com.amazonaws.services.dynamodbv2.model.DescribeTableRequest;
+import com.amazonaws.services.dynamodbv2.model.DescribeTableResult;
 
 
 // TODO: Auto-generated Javadoc
@@ -100,7 +88,7 @@ public class DynamoDBResourceProvider implements ResourceProvider,
      * @see org.apache.sling.api.resource.ModifyingResourceProvider#commit(org.apache.sling.api.resource.ResourceResolver)
      */
     public void commit(ResourceResolver arg0) throws PersistenceException {
-        // TODO Auto-generated method stub
+        //Does nothing for now
     }
 
     /* (non-Javadoc)
@@ -108,8 +96,7 @@ public class DynamoDBResourceProvider implements ResourceProvider,
      */
     public Resource create(ResourceResolver arg0, String arg1,
         Map<String, Object> arg2) throws PersistenceException {
-        // TODO Auto-generated method stub
-        return null;
+    	throw new UnsupportedOperationException();
     }
 
     /* (non-Javadoc)
@@ -117,7 +104,7 @@ public class DynamoDBResourceProvider implements ResourceProvider,
      */
     public void delete(ResourceResolver arg0, String arg1)
         throws PersistenceException {
-        // TODO Auto-generated method stub
+    	throw new UnsupportedOperationException();
     }
 
     /* (non-Javadoc)
@@ -200,8 +187,7 @@ public class DynamoDBResourceProvider implements ResourceProvider,
      * @see org.apache.sling.api.resource.ModifyingResourceProvider#hasChanges(org.apache.sling.api.resource.ResourceResolver)
      */
     public boolean hasChanges(ResourceResolver arg0) {
-        // TODO Auto-generated method stub
-        return false;
+    	return false;
     }
 
     /* (non-Javadoc)
@@ -210,7 +196,7 @@ public class DynamoDBResourceProvider implements ResourceProvider,
     public Iterator<Resource> listChildren(Resource resource) {
         ValueMap parentValueMap = resource.adaptTo(ValueMap.class);
 
-        if (!parentValueMap.containsKey("children") ||
+        if (parentValueMap== null || !parentValueMap.containsKey("children") ||
                 (parentValueMap.get("children") == null)) {
             return null;
         } else {
@@ -240,7 +226,7 @@ public class DynamoDBResourceProvider implements ResourceProvider,
      * @see org.apache.sling.api.resource.ModifyingResourceProvider#revert(org.apache.sling.api.resource.ResourceResolver)
      */
     public void revert(ResourceResolver arg0) {
-        // TODO Auto-generated method stub
+    	throw new UnsupportedOperationException();
     }
 
     private List<Resource> getChildren(Table dbtable, int parent,
