@@ -5,11 +5,13 @@ SlingDynamo is an Amazon's dynamo DB based Sling resource provider implementatio
 
 Table Structure in DynamoDB
 ===========================
-This is a specific table structure which is supported OOTB by this implementation. This table structure is generic enough to store any data in hierarchial structure. The only requirement for this table is to have 4 columns in addition to other application specific columns. 
+This is a specific table structure which is supported OOTB by this implementation. This table structure is generic enough to store any data in hierarchial structure. The only requirement for this table is to have 4 columns in addition to other application specific columns. <br/>
+
 1. id (Number) - The unique identifier for a row
 2. child_id (Number) - Unique identifier of a child row in context of its parent row
 3. parent (Number) - id of the parent of this child row
 4. children (Number Set)- A number set if the child_ids of this parent row
+
 Here's a sample table structure:
 
 | id | name          | child_id (Unique id in context of parent row) | children (child_ids of children rows) | parent (id of parent row) |
