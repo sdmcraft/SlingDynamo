@@ -107,8 +107,14 @@ public class DynamoDBResourceProvider implements ResourceProvider,
     	throw new UnsupportedOperationException();
     }
 
-    /* (non-Javadoc)
-     * @see org.apache.sling.api.resource.ResourceProvider#getResource(org.apache.sling.api.resource.ResourceResolver, javax.servlet.http.HttpServletRequest, java.lang.String)
+    /**
+     * Returns a resource from this resource provider or null if the resource provider cannot find it.
+     * The table-name, id and child-ids are parsed out from the path and queried against dynamodb to fetch the specified resource. 
+     *
+     * @param resolver the ResourceResolver to which the returned Resource is attached.
+     * @param req the HttpServletRequest made to get this resource
+     * @param path the path of the resource. The path is of the format &lt;table-name&gt;/&lt;id&gt;/[&lt;child-id1&gt;/.../&lt;child-idn&gt;]
+     * @return the resource at the specified path if it exists else returns null
      */
     public Resource getResource(ResourceResolver resolver,
         HttpServletRequest req, String path) {
@@ -190,7 +196,11 @@ public class DynamoDBResourceProvider implements ResourceProvider,
     	return false;
     }
 
-    /* (non-Javadoc)
+    /**
+     *  Fetches the child resources of the specified resource by querying up dynamodb with the child-ids for this resource
+     *
+     * @param resource the resource whose children are to be fetched
+     * @return the iterator over the child resources
      * @see org.apache.sling.api.resource.ResourceProvider#listChildren(org.apache.sling.api.resource.Resource)
      */
     public Iterator<Resource> listChildren(Resource resource) {
@@ -229,6 +239,16 @@ public class DynamoDBResourceProvider implements ResourceProvider,
     	throw new UnsupportedOperationException();
     }
 
+    /**
+     * Gets the children.
+     *
+     * @param dbtable the dbtable
+     * @param parent the parent
+     * @param childIds the child ids
+     * @param path the path
+     * @param resolver the resolver
+     * @return the children
+     */
     private List<Resource> getChildren(Table dbtable, int parent,
         Object[] childIds, String path, ResourceResolver resolver) {
         ScanFilter idFilter = new ScanFilter("parent").in(parent);
@@ -262,6 +282,12 @@ public class DynamoDBResourceProvider implements ResourceProvider,
         return children;
     }
 
+    /**
+     * Item to map.
+     *
+     * @param item the item
+     * @return the map
+     */
     private Map<String, Object> itemToMap(Item item) {
         Map<String, Object> resourceProps = new HashMap<String, Object>();
         Iterable<Entry<String, Object>> attributes = item.attributes();

@@ -33,7 +33,7 @@ public class DynamoDBResource extends AbstractResource implements Resource {
      * Instantiates a new dynamo db resource.
      *
      * @param resolver the resolver
-     * @param path the path
+     * @param metadata the metadata
      * @param valueMap the value map
      * @param resourceType the resource type
      */
