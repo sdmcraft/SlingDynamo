@@ -126,12 +126,6 @@
 			<version>1.2</version>
 		</dependency>
 		<dependency>
-			<groupId>com.googlecode.guava-osgi</groupId>
-			<artifactId>guava-osgi</artifactId>
-			<version>11.0.1</version>
-		</dependency>
-
-		<dependency>
 			<version>1.5.5</version>
 			<groupId>org.slf4j</groupId>
 			<artifactId>slf4j-api</artifactId>
@@ -249,10 +243,28 @@
 						<configuration>
 							<outputDirectory>${project.build.directory}/sling/additional-bundles</outputDirectory>
 							<!-- Include artifact id's of all of the bundles to install here -->
-							<includeArtifactIds>guava-osgi</includeArtifactIds>
+							<includeArtifactIds>SlingDynamo</includeArtifactIds>
 							<excludeTransitive>true</excludeTransitive>
 							<overWriteReleases>false</overWriteReleases>
 							<overWriteSnapshots>false</overWriteSnapshots>
+						</configuration>
+					</execution>
+					<execution>
+						<id>unpack-dynamodb-local</id>
+						<goals>
+							<goal>unpack</goal>
+						</goals>
+						<configuration>
+							<artifactItems>
+								<artifactItem>
+									<groupId>com.jcabi</groupId>
+									<artifactId>DynamoDBLocal</artifactId>
+									<version>2014-10-07</version>
+									<type>zip</type>
+									<outputDirectory>${project.build.directory}/dynamodb-dist</outputDirectory>
+									<overWrite>false</overWrite>
+								</artifactItem>
+							</artifactItems>
 						</configuration>
 					</execution>
 				</executions>
@@ -299,6 +311,8 @@
 						<jar.executor.jar.folder>${project.build.directory}/sling</jar.executor.jar.folder>
 						<jar.executor.jar.name.regexp>org.apache.sling.launchpad.*jar$</jar.executor.jar.name.regexp>
 						<additional.bundles.path>${project.build.directory}/sling/additional-bundles</additional.bundles.path>
+						<!-- <test.server.url>http://localhost:8080</test.server.url> <test.server.username>admin</test.server.username> 
+							<test.server.password>admin</test.server.password> <keepJarRunning>true</keepJarRunning> -->
 						<server.ready.timeout.seconds>60</server.ready.timeout.seconds>
 						<sling.testing.timeout.multiplier>1.0</sling.testing.timeout.multiplier>
 						<server.ready.path.1>/:script src="system/sling.js"</server.ready.path.1>
@@ -308,10 +322,47 @@
 							of their artifact name. The bundles are installed in lexical order of these 
 							property names. All bundles must be listed as dependencies in this pom, or 
 							they won't be installed. -->
-						<!-- <sling.additional.bundle.1>sample-sling-integration-test</sling.additional.bundle.1> -->
-						<sling.additional.bundle.1>guava-osgi</sling.additional.bundle.1>
+						<sling.additional.bundle.1>SlingDynamo</sling.additional.bundle.1>
+						<dynamodb.port>${dynamodblocal.port}</dynamodb.port>
 					</systemPropertyVariables>
 				</configuration>
+			</plugin>
+			<plugin>
+				<groupId>org.codehaus.mojo</groupId>
+				<artifactId>build-helper-maven-plugin</artifactId>
+				<executions>
+					<execution>
+						<id>reserver-dynamodb-port</id>
+						<goals>
+							<goal>reserve-network-port</goal>
+						</goals>
+						<configuration>
+							<portNames>
+								<portName>dynamodblocal.port</portName>
+							</portNames>
+							<maxPortNumber>9001</maxPortNumber>
+							<minPortNumber>9000</minPortNumber>
+						</configuration>
+					</execution>
+				</executions>
+			</plugin>
+			<plugin>
+				<groupId>com.jcabi</groupId>
+				<artifactId>jcabi-dynamodb-maven-plugin</artifactId>
+				<version>0.7.1</version>
+				<executions>
+					<execution>
+						<id>dynamodb-integration-test</id>
+						<goals>
+							<goal>start</goal>
+							<goal>stop</goal>
+						</goals>
+						<configuration>
+							<port>${dynamodblocal.port}</port>
+							<dist>${project.build.directory}/dynamodb-dist</dist>
+						</configuration>
+					</execution>
+				</executions>
 			</plugin>
 		</plugins>
 	</build>

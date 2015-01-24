@@ -10,7 +10,14 @@
  */
 package org.sdm.slingdynamo;
 
-import java.util.Map;
+import com.amazonaws.auth.AWSCredentials;
+import com.amazonaws.auth.BasicAWSCredentials;
+
+import com.amazonaws.regions.Region;
+import com.amazonaws.regions.Regions;
+
+import com.amazonaws.services.dynamodbv2.AmazonDynamoDBClient;
+import com.amazonaws.services.dynamodbv2.document.DynamoDB;
 
 import org.apache.felix.scr.annotations.Activate;
 import org.apache.felix.scr.annotations.Component;
@@ -18,19 +25,16 @@ import org.apache.felix.scr.annotations.Deactivate;
 import org.apache.felix.scr.annotations.Properties;
 import org.apache.felix.scr.annotations.Property;
 import org.apache.felix.scr.annotations.Service;
+
 import org.apache.sling.api.SlingConstants;
 import org.apache.sling.api.resource.LoginException;
 import org.apache.sling.api.resource.ResourceProvider;
 import org.apache.sling.api.resource.ResourceProviderFactory;
 import org.apache.sling.commons.osgi.PropertiesUtil;
+
 import org.osgi.framework.BundleContext;
 
-import com.amazonaws.auth.AWSCredentials;
-import com.amazonaws.auth.BasicAWSCredentials;
-import com.amazonaws.regions.Region;
-import com.amazonaws.regions.Regions;
-import com.amazonaws.services.dynamodbv2.AmazonDynamoDBClient;
-import com.amazonaws.services.dynamodbv2.document.DynamoDB;
+import java.util.Map;
 
 
 // TODO: Auto-generated Javadoc
@@ -41,6 +45,7 @@ import com.amazonaws.services.dynamodbv2.document.DynamoDB;
 @Service
 @Properties({@Property(name = "service.description",value = "Dynamo DB Resource Provider Factory")
     , @Property(name = "service.vendor",value = "sdm.org")
+    , @Property(name = ResourceProvider.ROOTS,value = "/content/dynamodb")
 })
 public class DynamoDBResourceProviderFactory implements ResourceProviderFactory {
     /** The Constant PROP_ACCESS_KEY. */
@@ -54,10 +59,6 @@ public class DynamoDBResourceProviderFactory implements ResourceProviderFactory 
     /** The Constant PROP_REGION. */
     @Property
     private static final String PROP_REGION = "aws.region";
-
-    /** The Constant PROP_ROOTS. */
-    @Property
-    private static final String PROP_ROOTS = ResourceProvider.ROOTS;
 
     /** The Constant PROP_RESOURCE_TYPE. */
     @Property
@@ -83,6 +84,7 @@ public class DynamoDBResourceProviderFactory implements ResourceProviderFactory 
 
     /** The secret access key. */
     private String secretAccessKey = "";
+    private String DEFAULT_ROOT = "/content/dynamodb";
 
     /* (non-Javadoc)
      * @see org.apache.sling.api.resource.ResourceProviderFactory#getAdministrativeResourceProvider(java.util.Map)
@@ -113,19 +115,27 @@ public class DynamoDBResourceProviderFactory implements ResourceProviderFactory 
         this.accessKey = PropertiesUtil.toString(config.get(PROP_ACCESS_KEY), "");
         this.secretAccessKey = PropertiesUtil.toString(config.get(
                     PROP_SECRET_ACCESS_KEY), "");
-        this.region = PropertiesUtil.toString(config.get(PROP_REGION), "");
+        this.region = PropertiesUtil.toString(config.get(PROP_REGION), null);
 
         this.root = PropertiesUtil.toString(config.get(ResourceProvider.ROOTS),
-                "");
+                "/content/dynamodb");
+
+        if ((this.root == null) || this.root.isEmpty()) {
+            this.root = DEFAULT_ROOT;
+        }
+
         this.resourceType = PropertiesUtil.toString(config.get(
                     SlingConstants.PROPERTY_RESOURCE_TYPE), "");
 
         AWSCredentials awsCredentials = new BasicAWSCredentials(accessKey,
                 secretAccessKey);
         dynamoDBClient = new AmazonDynamoDBClient(awsCredentials);
+        dynamoDBClient.setEndpoint("http://localhost:9000");
 
-        Region awsRegion = Region.getRegion(Regions.fromName(region));
-        dynamoDBClient.setRegion(awsRegion);
+        if ((this.region != null) && !this.region.isEmpty()) {
+            Region awsRegion = Region.getRegion(Regions.fromName(region));
+            dynamoDBClient.setRegion(awsRegion);
+        }
 
         dynamoDB = new DynamoDB(dynamoDBClient);
     }
