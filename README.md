@@ -19,7 +19,7 @@ Here's a sample table structure:
 | 1  | North America |                                               | {1}                                   |                           |
 | 2  | South America |                                               | {1}                                   |                           |
 | 3  | USA           | 1                                             | {1,2}                                 | 1                         |
-| 4  | Brazil        | 1                                             | {1}                                   | 2                         |
+| 4  | Brazil        | 1                                             |                                       | 2                         |
 | 5  | California    | 1                                             | {1}                                   | 3                         |
 | 6  | San Francisco | 1                                             |                                       | 5                         |
 | 7  | Texas         | 2                                             |                                       | 3                         |
