@@ -16,23 +16,25 @@ import com.amazonaws.services.dynamodbv2.model.ProvisionedThroughput;
 import com.amazonaws.services.dynamodbv2.model.PutItemRequest;
 import com.amazonaws.services.dynamodbv2.model.PutItemResult;
 import com.amazonaws.services.dynamodbv2.model.ScalarAttributeType;
-import com.amazonaws.services.dynamodbv2.model.ScanRequest;
-import com.amazonaws.services.dynamodbv2.model.ScanResult;
 import com.amazonaws.services.dynamodbv2.model.TableDescription;
 import com.amazonaws.services.dynamodbv2.model.TableStatus;
 
 import org.apache.sling.testing.tools.sling.SlingClient;
 import org.apache.sling.testing.tools.sling.SlingTestBase;
 
-import org.junit.Before;
+import org.junit.BeforeClass;
 import org.junit.Test;
+
+import org.skyscreamer.jsonassert.JSONAssert;
 
 import java.util.HashMap;
 import java.util.Map;
 
 
-public class SampleIT extends SlingTestBase {
+public class DynamoDBResourceProviderIT extends SlingTestBase {
     private static final String PORT = System.getProperty("dynamodb.port");
+    private static final String testDbTable = "data";
+    private static AmazonDynamoDB dynamoDB;
 
     /**
      * The SlingClient can be used to interact with the repository when it is
@@ -41,24 +43,23 @@ public class SampleIT extends SlingTestBase {
      */
     private SlingClient slingClient = new SlingClient(this.getServerBaseUrl(),
             this.getServerUsername(), this.getServerPassword());
-    private AmazonDynamoDB dynamoDB;
 
     /**
      * Execute before the actual test, this will be used to setup the test data
      *
      * @throws Exception
      */
-    @Before
-    public void init() throws Exception {
+    @BeforeClass
+    public static void init() throws Exception {
         dynamoDB = new AmazonDynamoDBClient(new BasicAWSCredentials("", ""));
-        dynamoDB.setEndpoint(String.format("http://localhost:%s", SampleIT.PORT));
+        dynamoDB.setEndpoint(String.format("http://localhost:%s",
+                DynamoDBResourceProviderIT.PORT));
 
-        String tableName = "data";
         AttributeDefinition id = new AttributeDefinition("id",
                 ScalarAttributeType.N);
 
         // Create a table with a primary hash key named 'name', which holds a string
-        CreateTableRequest createTableRequest = new CreateTableRequest().withTableName(tableName)
+        CreateTableRequest createTableRequest = new CreateTableRequest().withTableName(testDbTable)
                                                                         .withKeySchema(new KeySchemaElement().withAttributeName(
                     "id").withKeyType(KeyType.HASH)).withAttributeDefinitions(id)
                                                                         .withProvisionedThroughput(new ProvisionedThroughput().withReadCapacityUnits(
@@ -66,23 +67,24 @@ public class SampleIT extends SlingTestBase {
         TableDescription createdTableDescription = dynamoDB.createTable(createTableRequest)
                                                            .getTableDescription();
         // Wait for it to become active
-        waitForTableToBecomeAvailable(tableName);
+        waitForTableToBecomeAvailable(testDbTable);
 
         // Describe our new table
-        DescribeTableRequest describeTableRequest = new DescribeTableRequest().withTableName(tableName);
+        DescribeTableRequest describeTableRequest = new DescribeTableRequest().withTableName(testDbTable);
         TableDescription tableDescription = dynamoDB.describeTable(describeTableRequest)
                                                     .getTable();
-        System.out.println("Table Description: " + tableDescription);
+        //System.out.println("Table Description: " + tableDescription);
+        createItem(1, "North America", null, null, new String[] { "1" });
+        createItem(2, "South America", null, null, new String[] { "1" });
+        createItem(3, "USA", 1, 1, new String[] { "1", "2" });
+        createItem(4, "Brazil", 2, 1, null);
+        createItem(5, "California", 3, 1, new String[] { "1" });
+        createItem(6, "San Francisco", 5, 1, null);
+        createItem(7, "Texas", 3, 2, null);
 
-        Map<String, AttributeValue> item = newItem(1, "North America", null,
-                null, new String[] { "1", "2" });
-        PutItemRequest putItemRequest = new PutItemRequest(tableName, item);
-        PutItemResult putItemResult = dynamoDB.putItem(putItemRequest);
-        System.out.println("Result: " + putItemResult);
-
-        ScanRequest scanRequest = new ScanRequest(tableName);
-        ScanResult scanResult = dynamoDB.scan(scanRequest);
-        System.out.println("Scan Result: " + scanResult);
+        //        ScanRequest scanRequest = new ScanRequest(testDbTable);
+        //        ScanResult scanResult = dynamoDB.scan(scanRequest);
+        //        System.out.println(("Scan Result: " + scanResult));
     }
 
     /**
@@ -92,12 +94,40 @@ public class SampleIT extends SlingTestBase {
      * @throws Exception
      */
     @Test
-    public void testSample() throws Exception {
-        System.out.println(getRequestExecutor()
-                               .execute(getRequestBuilder()
-                                            .buildGetRequest("/content/dynamodb/data/1.json")
-                                            .withCredentials("admin", "admin"))
-                               .assertStatus(200).getContent());
+    public void testGetResource() throws Exception {
+        //    	{"id":"1","name":"North America","children":"[1]"}
+        //    	{"id":"2","name":"South America","children":"[1]"}
+        //    	{"id":"3","child_id":"1","name":"USA","children":"[1, 2]","parent":"1"}
+        //    	{"id":"4","child_id":"1","name":"Brazil","parent":"2"}
+        //    	{"id":"5","child_id":"1","name":"California","children":"[1]","parent":"3"}
+        //    	{"id":"6","child_id":"1","name":"San Francisco","parent":"5"}
+        //    	{"id":"7","child_id":"2","name":"Texas","parent":"3"}
+        String expected = "{\"id\":\"1\",\"name\":\"North America\",\"children\":\"[1]\"}";
+        String actual = getRequestExecutor()
+                            .execute(getRequestBuilder()
+                                         .buildGetRequest("/content/dynamodb/data/1.json")
+                                         .withCredentials("admin", "admin"))
+                            .assertStatus(200).getContent();
+        JSONAssert.assertEquals(expected, actual, false);
+
+        expected = "{\"id\":\"3\",\"child_id\":\"1\",\"name\":\"USA\",\"children\":\"[1, 2]\",\"parent\":\"1\"}";
+        actual = getRequestExecutor()
+                     .execute(getRequestBuilder()
+                                  .buildGetRequest("/content/dynamodb/data/3.json")
+                                  .withCredentials("admin", "admin"))
+                     .assertStatus(200).getContent();
+        JSONAssert.assertEquals(expected, actual, false);
+    }
+
+    @Test
+    public void testListChildren() throws Exception {
+        String expected = "{\"id\":\"1\",\"name\":\"North America\",\"children\":\"[1]\",\"1\":{\"id\":\"3\",\"child_id\":\"1\",\"name\":\"USA\",\"children\":\"[1, 2]\",\"parent\":\"1\"}}";
+        String actual = getRequestExecutor()
+                            .execute(getRequestBuilder()
+                                         .buildGetRequest("/content/dynamodb/data/1.1.json")
+                                         .withCredentials("admin", "admin"))
+                            .assertStatus(200).getContent();
+        JSONAssert.assertEquals(expected, actual, false);
     }
 
     /**
@@ -105,7 +135,7 @@ public class SampleIT extends SlingTestBase {
      *
      * @param tableName the table name
      */
-    private void waitForTableToBecomeAvailable(String tableName) {
+    private static void waitForTableToBecomeAvailable(String tableName) {
         System.out.println("Waiting for " + tableName + " to become ACTIVE...");
 
         long startTime = System.currentTimeMillis();
@@ -139,8 +169,8 @@ public class SampleIT extends SlingTestBase {
         throw new RuntimeException("Table " + tableName + " never went active");
     }
 
-    private static Map<String, AttributeValue> newItem(Integer id, String name,
-        Integer parent, Integer childId, String[] children) {
+    private static void createItem(Integer id, String name, Integer parent,
+        Integer childId, String[] children) {
         Map<String, AttributeValue> item = new HashMap<String, AttributeValue>();
         item.put("id", new AttributeValue().withN(id.toString()));
         item.put("name", new AttributeValue(name));
@@ -157,6 +187,7 @@ public class SampleIT extends SlingTestBase {
             item.put("children", new AttributeValue().withNS(children));
         }
 
-        return item;
+        PutItemRequest putItemRequest = new PutItemRequest(testDbTable, item);
+        PutItemResult putItemResult = dynamoDB.putItem(putItemRequest);
     }
 }
