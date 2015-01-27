@@ -1,11 +1,11 @@
-<?xml version="1.0" encoding="UTF-8"?>
+	<?xml version="1.0" encoding="UTF-8"?>
 <project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
 	xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/maven-v4_0_0.xsd">
 	<modelVersion>4.0.0</modelVersion>
 	<groupId>org.sdm.slingdynamo</groupId>
 	<artifactId>SlingDynamo</artifactId>
 	<packaging>bundle</packaging>
-	<version>1.0-SNAPSHOT</version>
+	<version>0.0.1-SNAPSHOT</version>
 	<name>SlingDynamo</name>
 	<url>http://maven.apache.org</url>
 	<dependencies>
@@ -14,82 +14,12 @@
 			<artifactId>aws-java-sdk-dynamodb</artifactId>
 			<version>1.9.16</version>
 		</dependency>
-		<dependency>
-			<groupId>com.amazonaws</groupId>
-			<artifactId>aws-java-sdk-core</artifactId>
-			<version>1.9.16</version>
-		</dependency>
-		<dependency>
-			<groupId>com.amazonaws</groupId>
-			<artifactId>aws-java-sdk-s3</artifactId>
-			<version>1.9.16</version>
-		</dependency>
-		<dependency>
-			<groupId>com.amazonaws</groupId>
-			<artifactId>aws-java-sdk-kms</artifactId>
-			<version>1.9.16</version>
-		</dependency>
-
-		<dependency>
-			<groupId>joda-time</groupId>
-			<artifactId>joda-time</artifactId>
-			<version>2.6</version>
-		</dependency>
-
-		<dependency>
-			<groupId>javax.mail</groupId>
-			<artifactId>javax.mail-api</artifactId>
-			<version>1.5.2</version>
-		</dependency>
-		<dependency>
-			<groupId>com.sun.mail</groupId>
-			<artifactId>javax.mail</artifactId>
-			<version>1.5.2</version>
-		</dependency>
-
-		<dependency>
-			<groupId>org.aspectj</groupId>
-			<artifactId>aspectjrt</artifactId>
-			<version>1.8.4</version>
-		</dependency>
-		<dependency>
-			<groupId>org.apache.httpcomponents</groupId>
-			<artifactId>httpcore</artifactId>
-			<version>4.3</version>
-		</dependency>
-		<dependency>
-			<groupId>org.apache.httpcomponents</groupId>
-			<artifactId>httpclient</artifactId>
-			<version>4.3.1</version>
-		</dependency>
-		<dependency>
-			<groupId>com.fasterxml.jackson.core</groupId>
-			<artifactId>jackson-databind</artifactId>
-			<version>2.1.1</version>
-		</dependency>
-		<dependency>
-			<groupId>com.fasterxml.jackson.core</groupId>
-			<artifactId>jackson-core</artifactId>
-			<version>2.1.1</version>
-		</dependency>
-		<dependency>
-			<groupId>com.fasterxml.jackson.core</groupId>
-			<artifactId>jackson-annotations</artifactId>
-			<version>2.1.1</version>
-		</dependency>
-		<dependency>
-			<groupId>com.sun.xml.parsers</groupId>
-			<artifactId>jaxp-ri</artifactId>
-			<version>1.4.5</version>
-		</dependency>
 
 		<dependency>
 			<groupId>org.osgi</groupId>
 			<artifactId>org.osgi.core</artifactId>
 			<version>4.3.0</version>
 		</dependency>
-		<!-- <dependency> <groupId>org.apache.felix</groupId> <artifactId>org.apache.felix.framework</artifactId> 
-			<version>3.0.8</version> </dependency> -->
 		<dependency>
 			<groupId>org.osgi</groupId>
 			<artifactId>org.osgi.compendium</artifactId>
@@ -109,11 +39,6 @@
 			<groupId>org.apache.sling</groupId>
 			<artifactId>org.apache.sling.commons.osgi</artifactId>
 			<version>2.2.0</version>
-		</dependency>
-		<dependency>
-			<groupId>org.apache.felix</groupId>
-			<artifactId>org.apache.felix.scr.annotations</artifactId>
-			<version>1.9.6</version>
 		</dependency>
 		<dependency>
 			<groupId>javax.servlet</groupId>
@@ -155,6 +80,12 @@
 			<version>1.2.3</version>
 			<scope>test</scope>
 		</dependency>
+		<dependency>
+			<groupId>com.github.sdmcraft</groupId>
+			<artifactId>aws-osgi</artifactId>
+			<version>1.9.16</version>
+			<scope>test</scope>
+		</dependency>
 	</dependencies>
 	<build>
 		<plugins>
@@ -177,30 +108,6 @@
 				<extensions>true</extensions>
 				<configuration>
 					<instructions>
-						<Import-Package>
-							com.sun.java_cup.internal;resolution:=optional,
-							org.joda.convert;resolution:=optional,
-							org.springframework.*;resolution:=optional,
-							org.junit.*;resolution:=optional,
-							*
-						</Import-Package>
-						<Export-Package>org.sdm.slingdynamo</Export-Package>
-						<Embed-Dependency>
-							aws-java-sdk-core,
-							aws-java-sdk-s3,
-							aws-java-sdk-kms,
-							aws-java-sdk-dynamodb,
-							httpcore,
-							httpclient,
-							jackson-databind,
-							jackson-core,
-							jackson-annotations,
-							joda-time,
-							javax.mail-api,
-							aspectjrt,
-							javax.mail,
-							jaxp-ri,
-						</Embed-Dependency>
 						<Sling-Initial-Content>
 							SLING-INF/apps/dynamodb;overwrite:=true;path:=/apps/dynamodb,
 							SLING-INF/apps/dynamodb/demo;overwrite:=true;path:=/apps/dynamodb/demo,
@@ -249,7 +156,7 @@
 						<configuration>
 							<outputDirectory>${project.build.directory}/sling/additional-bundles</outputDirectory>
 							<!-- Include artifact id's of all of the bundles to install here -->
-							<includeArtifactIds>SlingDynamo</includeArtifactIds>
+							<includeArtifactIds>SlingDynamo, aws-osgi</includeArtifactIds>
 							<excludeTransitive>true</excludeTransitive>
 							<overWriteReleases>false</overWriteReleases>
 							<overWriteSnapshots>false</overWriteSnapshots>
@@ -328,7 +235,8 @@
 							of their artifact name. The bundles are installed in lexical order of these 
 							property names. All bundles must be listed as dependencies in this pom, or 
 							they won't be installed. -->
-						<sling.additional.bundle.1>SlingDynamo</sling.additional.bundle.1>
+						<sling.additional.bundle.1>aws-osgi</sling.additional.bundle.1>
+						<sling.additional.bundle.2>SlingDynamo</sling.additional.bundle.2>
 						<dynamodb.port>${dynamodblocal.port}</dynamodb.port>
 					</systemPropertyVariables>
 				</configuration>
@@ -372,4 +280,56 @@
 			</plugin>
 		</plugins>
 	</build>
+	<profiles>
+		<profile>
+			<id>release</id>
+			<build>
+				<plugins>
+					<plugin>
+						<groupId>org.apache.maven.plugins</groupId>
+						<artifactId>maven-gpg-plugin</artifactId>
+						<version>1.6</version>
+						<executions>
+							<execution>
+								<id>sign-artifacts</id>
+								<phase>verify</phase>
+								<goals>
+									<goal>sign</goal>
+								</goals>
+							</execution>
+						</executions>
+					</plugin>
+					<plugin>
+						<groupId>org.apache.maven.plugins</groupId>
+						<artifactId>maven-javadoc-plugin</artifactId>
+						<version>2.10.1</version>
+						<executions>
+							<execution>
+								<id>generate-javadocs</id>
+								<phase>package</phase>
+								<goals>
+									<goal>jar</goal>
+								</goals>
+							</execution>
+						</executions>
+					</plugin>
+					<plugin>
+						<groupId>org.apache.maven.plugins</groupId>
+						<artifactId>maven-source-plugin</artifactId>
+						<version>2.4</version>
+						<executions>
+							<execution>
+								<id>attach-sources</id>
+								<phase>verify</phase>
+								<goals>
+									<goal>jar-no-fork</goal>
+								</goals>
+							</execution>
+						</executions>
+					</plugin>
+				</plugins>
+			</build>
+		</profile>
+	</profiles>
+
 </project>
