@@ -1,4 +1,4 @@
-package org.sdm.slingdynamo;
+package com.github.sdmcraft.slingdynamo;
 
 import java.io.IOException;
 import java.util.Iterator;

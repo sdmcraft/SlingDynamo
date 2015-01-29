@@ -1,4 +1,4 @@
-package org.sdm.slingdynamo;
+package com.github.sdmcraft.slingdynamo;
 
 
 
