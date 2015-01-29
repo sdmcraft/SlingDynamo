@@ -29,6 +29,7 @@ atlassian-ide-plugin.xml
 .vlt-sync-config.properties
 generated
 doc
+settings.xml
 
 # Ignore Quickstart launches in the source tree
 license.properties
