@@ -110,7 +110,6 @@
 			<groupId>com.github.sdmcraft</groupId>
 			<artifactId>aws-osgi</artifactId>
 			<version>1.9.16</version>
-			<scope>test</scope>
 		</dependency>
 		<dependency>
 			<groupId>org.apache.httpcomponents</groupId>

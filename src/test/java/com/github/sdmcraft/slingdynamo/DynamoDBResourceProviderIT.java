@@ -1,4 +1,4 @@
-package org.sdm.slingdynamo;
+package com.github.sdmcraft.slingdynamo;
 
 import com.amazonaws.AmazonServiceException;
 
@@ -33,7 +33,7 @@ import java.util.Map;
 
 public class DynamoDBResourceProviderIT extends SlingTestBase {
     private static final String PORT = System.getProperty("dynamodb.port");
-    private static final String testDbTable = "data";
+    private static final String testDbTable = "data" ;
     private static AmazonDynamoDB dynamoDB;
 
     /**

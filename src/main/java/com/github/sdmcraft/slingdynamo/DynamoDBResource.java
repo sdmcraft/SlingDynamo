@@ -1,7 +1,7 @@
 /**
  *
  */
-package org.sdm.slingdynamo;
+package com.github.sdmcraft.slingdynamo;
 
 import java.util.Map;
 

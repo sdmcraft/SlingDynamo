@@ -8,7 +8,7 @@
  *
  * Copyright (c) 2013-2014 Satya Deep Maheshwari
  */
-package org.sdm.slingdynamo;
+package com.github.sdmcraft.slingdynamo;
 
 import com.amazonaws.auth.AWSCredentials;
 import com.amazonaws.auth.BasicAWSCredentials;

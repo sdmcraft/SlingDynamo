@@ -8,7 +8,7 @@
  *
  * Copyright (c) 2001-2002 Marco Hunsicker
  */
-package org.sdm.slingdynamo.demo;
+package com.github.sdmcraft.slingdynamo.demo;
 
 import java.util.Arrays;
 import java.util.HashMap;
