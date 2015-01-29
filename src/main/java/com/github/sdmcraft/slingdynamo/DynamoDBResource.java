@@ -6,6 +6,7 @@ package com.github.sdmcraft.slingdynamo;
 import java.util.Map;
 
 import org.apache.sling.api.resource.AbstractResource;
+import org.apache.sling.api.resource.ModifiableValueMap;
 import org.apache.sling.api.resource.Resource;
 import org.apache.sling.api.resource.ResourceMetadata;
 import org.apache.sling.api.resource.ResourceResolver;
@@ -24,7 +25,7 @@ public class DynamoDBResource extends AbstractResource implements Resource {
     private final ResourceMetadata metadata;
 
     /** The value map. */
-    private final ValueMap valueMap;
+    private final ModifiableValueMap valueMap;
 
     /** The resolver. */
     private final ResourceResolver resolver;
@@ -37,7 +38,7 @@ public class DynamoDBResource extends AbstractResource implements Resource {
      * @param valueMap the value map
      * @param resourceType the resource type
      */
-    DynamoDBResource(ResourceResolver resolver, ResourceMetadata metadata, ValueMap valueMap,
+    DynamoDBResource(ResourceResolver resolver, ResourceMetadata metadata, ModifiableValueMap valueMap,
         String resourceType) {
 
         this.valueMap = valueMap;
@@ -94,7 +95,7 @@ public class DynamoDBResource extends AbstractResource implements Resource {
     @Override
     @SuppressWarnings("unchecked")
     public <AdapterType> AdapterType adaptTo(Class<AdapterType> type) {
-        if (type == ValueMap.class || type == Map.class) {
+        if (type == ValueMap.class || type == Map.class || type == ModifiableValueMap.class) {
             return (AdapterType) valueMap;
         }
 
