@@ -1,13 +1,39 @@
-	<?xml version="1.0" encoding="UTF-8"?>
+<?xml version="1.0" encoding="UTF-8"?>
 <project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
 	xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/maven-v4_0_0.xsd">
 	<modelVersion>4.0.0</modelVersion>
-	<groupId>org.sdm.slingdynamo</groupId>
+	<groupId>com.github.sdmcraft.slingdynamo</groupId>
 	<artifactId>SlingDynamo</artifactId>
 	<packaging>bundle</packaging>
 	<version>0.0.1-SNAPSHOT</version>
 	<name>SlingDynamo</name>
-	<url>http://maven.apache.org</url>
+	<description>com.github.sdmcraft.slingdynamo - SlingDynamo</description>
+	<url>https://github.com/sdmcraft/SlingDynamo</url>
+	<licenses>
+		<license>
+			<name>MIT License</name>
+			<url>http://www.opensource.org/licenses/mit-license.php</url>
+		</license>
+	</licenses>
+	<developers>
+		<developer>
+			<name>Satya Deep Maheshwari</name>
+			<email>m.satyadeep@gmail.com</email>
+			<organization>sdmcraft</organization>
+			<organizationUrl>https://github.com/sdmcraft</organizationUrl>
+		</developer>
+	</developers>
+	<scm>
+		<connection>scm:git:git@github.com:sdmcraft/SlingDynamo.git</connection>
+		<developerConnection>scm:git:git@github.com:sdmcraft/SlingDynamo.git</developerConnection>
+		<url>git@github.com:sdmcraft/SlingDynamo.git</url>
+	</scm>
+	<distributionManagement>
+		<snapshotRepository>
+			<id>ossrh</id>
+			<url>https://oss.sonatype.org/content/repositories/snapshots</url>
+		</snapshotRepository>
+	</distributionManagement>
 	<dependencies>
 		<dependency>
 			<groupId>com.amazonaws</groupId>
@@ -86,6 +112,19 @@
 			<version>1.9.16</version>
 			<scope>test</scope>
 		</dependency>
+		<dependency>
+			<groupId>org.apache.httpcomponents</groupId>
+			<artifactId>httpclient</artifactId>
+			<version>4.3.1</version>
+			<scope>test</scope>
+		</dependency>
+		<dependency>
+			<groupId>org.apache.httpcomponents</groupId>
+			<artifactId>httpcore</artifactId>
+			<version>4.3</version>
+			<scope>test</scope>
+		</dependency>
+
 	</dependencies>
 	<build>
 		<plugins>
@@ -225,7 +264,7 @@
 						<jar.executor.jar.name.regexp>org.apache.sling.launchpad.*jar$</jar.executor.jar.name.regexp>
 						<additional.bundles.path>${project.build.directory}/sling/additional-bundles</additional.bundles.path>
 						<!-- <test.server.url>http://localhost:8080</test.server.url> <test.server.username>admin</test.server.username> 
-							<test.server.password>admin</test.server.password> <keepJarRunning>true</keepJarRunning> -->
+							<test.server.password>admin</test.server.password> -->
 						<server.ready.timeout.seconds>60</server.ready.timeout.seconds>
 						<sling.testing.timeout.multiplier>1.0</sling.testing.timeout.multiplier>
 						<server.ready.path.1>/:script src="system/sling.js"</server.ready.path.1>
@@ -320,12 +359,23 @@
 						<executions>
 							<execution>
 								<id>attach-sources</id>
-								<phase>verify</phase>
+								<phase>package</phase>
 								<goals>
 									<goal>jar-no-fork</goal>
 								</goals>
 							</execution>
 						</executions>
+					</plugin>
+					<plugin>
+						<groupId>org.sonatype.plugins</groupId>
+						<artifactId>nexus-staging-maven-plugin</artifactId>
+						<version>1.6.5</version>
+						<extensions>true</extensions>
+						<configuration>
+							<serverId>ossrh</serverId>
+							<nexusUrl>https://oss.sonatype.org/</nexusUrl>
+							<autoReleaseAfterClose>true</autoReleaseAfterClose>
+						</configuration>
 					</plugin>
 				</plugins>
 			</build>
