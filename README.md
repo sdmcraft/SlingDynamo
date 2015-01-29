@@ -60,3 +60,14 @@ parent: "1",
 children: "[1,2]"
 }
 </pre>
+
+Running Tests
+=============
+This project uses 'Sling Testing Tools' as specified at [0](http://sling.apache.org/documentation/development/sling-testing-tools.html). The integration tests are run via HTTP requests against a Sling test instance that is started during the Maven build cycle. This blog at [1](http://labs.sixdimensions.com/blog/2013-06-05/creating-integration-tests-apache-sling/) was really helpful in getting things setup for writing the integration tests.
+
+Also the tests use local DynamoDB instance (see [2](http://labs.sixdimensions.com/blog/2013-06-05/creating-integration-tests-apache-sling/)) which is basically a local DynamoDB setup with the same api support as the real dynamodb on AWS. This prevents the tests from incurring api usage costs on AWS. Here's a very useful resource for integrating local dynamodb with maven build cycle at [3](http://dynamodb.jcabi.com/)
+
+1. [0] - http://sling.apache.org/documentation/development/sling-testing-tools.html
+2. [1] - http://labs.sixdimensions.com/blog/2013-06-05/creating-integration-tests-apache-sling/
+3. [2] - http://docs.aws.amazon.com/amazondynamodb/latest/developerguide/Tools.DynamoDBLocal.html
+4. [3] - http://dynamodb.jcabi.com/
