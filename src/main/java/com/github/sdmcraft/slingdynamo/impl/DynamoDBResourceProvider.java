@@ -8,7 +8,7 @@
  *
  * Copyright (c) 2013-2014 Satya Deep Maheshwari
  */
-package com.github.sdmcraft.slingdynamo;
+package com.github.sdmcraft.slingdynamo.impl;
 
 import com.amazonaws.services.dynamodbv2.AmazonDynamoDBClient;
 import com.amazonaws.services.dynamodbv2.document.DynamoDB;
@@ -197,7 +197,7 @@ public class DynamoDBResourceProvider implements ResourceProvider,
      */
     public boolean hasChanges(ResourceResolver arg0) {
     	LOGGER.info(">>>>>>>>HasChanges");
-        return true;
+        return false;
     }
 
     /**

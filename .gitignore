@@ -30,6 +30,7 @@ atlassian-ide-plugin.xml
 generated
 doc
 settings.xml
+src/main/resources/SLING-INF/apps/dynamodb/config/
 
 # Ignore Quickstart launches in the source tree
 license.properties

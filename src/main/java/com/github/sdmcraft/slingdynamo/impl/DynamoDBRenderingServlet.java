@@ -1,4 +1,4 @@
-package com.github.sdmcraft.slingdynamo;
+package com.github.sdmcraft.slingdynamo.impl;
 
 import java.io.IOException;
 import java.util.Iterator;
@@ -26,7 +26,8 @@ import com.amazonaws.util.json.JSONObject;
  */
 @Component(immediate = true, metatype = true)
 @Service(value = Servlet.class)
-@Properties({@Property(name = "sling.servlet.resourceTypes",value = "/apps/dynamodb/render")
+@Properties({@Property(name = "sling.servlet.resourceTypes",value = "dynamodb/render"),
+	@Property(name = "endpoint",value = "xxx")
 })
 public class DynamoDBRenderingServlet extends SlingAllMethodsServlet {
     /* (non-Javadoc)

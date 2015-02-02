@@ -8,9 +8,10 @@
  *
  * Copyright (c) 2013-2014 Satya Deep Maheshwari
  */
-package com.github.sdmcraft.slingdynamo;
+package com.github.sdmcraft.slingdynamo.impl;
 
 import com.amazonaws.auth.AWSCredentials;
+import com.amazonaws.auth.AWSCredentialsProvider;
 import com.amazonaws.auth.BasicAWSCredentials;
 
 import com.amazonaws.regions.Region;
@@ -24,6 +25,7 @@ import org.apache.felix.scr.annotations.Component;
 import org.apache.felix.scr.annotations.Deactivate;
 import org.apache.felix.scr.annotations.Properties;
 import org.apache.felix.scr.annotations.Property;
+import org.apache.felix.scr.annotations.Reference;
 import org.apache.felix.scr.annotations.Service;
 
 import org.apache.sling.api.SlingConstants;
@@ -48,14 +50,6 @@ import java.util.Map;
     , @Property(name = ResourceProvider.ROOTS,value = "/content/dynamodb")
 })
 public class DynamoDBResourceProviderFactory implements ResourceProviderFactory {
-    /** The Constant PROP_ACCESS_KEY. */
-    @Property
-    private static final String PROP_ACCESS_KEY = "aws.access.key";
-
-    /** The Constant PROP_SECRET_ACCESS_KEY. */
-    @Property
-    private static final String PROP_SECRET_ACCESS_KEY = "aws.secret.access.key";
-
     /** The Constant PROP_REGION. */
     @Property
     private static final String PROP_REGION = "aws.region";
@@ -70,21 +64,15 @@ public class DynamoDBResourceProviderFactory implements ResourceProviderFactory 
     /** The dynamo db. */
     private DynamoDB dynamoDB;
 
-    /** The access key. */
-    private String accessKey = "";
-
-    /** The region. */
-    private String region = "";
-
     /** The resource type. */
-    private String resourceType = "";
+    private String resourceType;
 
     /** The root. */
-    private String root = "";
-
-    /** The secret access key. */
-    private String secretAccessKey = "";
-    private String DEFAULT_ROOT = "/content/dynamodb";
+    private String root;
+    private final String DEFAULT_ROOT = "/content/dynamodb";
+    private String region;
+    @Reference
+    AWSCredentialsProvider awsCredentialsProvider;
 
     /* (non-Javadoc)
      * @see org.apache.sling.api.resource.ResourceProviderFactory#getAdministrativeResourceProvider(java.util.Map)
@@ -112,29 +100,31 @@ public class DynamoDBResourceProviderFactory implements ResourceProviderFactory 
      */
     @Activate
     protected void activate(BundleContext context, Map<String, Object> config) {
-        this.accessKey = PropertiesUtil.toString(config.get(PROP_ACCESS_KEY), "");
-        this.secretAccessKey = PropertiesUtil.toString(config.get(
-                    PROP_SECRET_ACCESS_KEY), "");
-        this.region = PropertiesUtil.toString(config.get(PROP_REGION), null);
-
         this.root = PropertiesUtil.toString(config.get(ResourceProvider.ROOTS),
-                "/content/dynamodb");
+                DEFAULT_ROOT);
 
         if ((this.root == null) || this.root.isEmpty()) {
             this.root = DEFAULT_ROOT;
         }
 
         this.resourceType = PropertiesUtil.toString(config.get(
-                    SlingConstants.PROPERTY_RESOURCE_TYPE), "");
+                    SlingConstants.PROPERTY_RESOURCE_TYPE),
+                Constants.DEFAULT_GET_SERVLET);
 
-        AWSCredentials awsCredentials = new BasicAWSCredentials(accessKey,
-                secretAccessKey);
-        dynamoDBClient = new AmazonDynamoDBClient(awsCredentials);
-        dynamoDBClient.setEndpoint("http://localhost:9000");
+        if ((this.resourceType == null) || this.resourceType.isEmpty()) {
+            this.resourceType = Constants.DEFAULT_GET_SERVLET;
+        }
+
+        dynamoDBClient = new AmazonDynamoDBClient(awsCredentialsProvider.getCredentials());
+
+        this.region = PropertiesUtil.toString(config.get(PROP_REGION),
+                Constants.DEFAULT_REGION);
 
         if ((this.region != null) && !this.region.isEmpty()) {
             Region awsRegion = Region.getRegion(Regions.fromName(region));
             dynamoDBClient.setRegion(awsRegion);
+        } else {
+            dynamoDBClient.setEndpoint("http://localhost:9000");
         }
 
         dynamoDB = new DynamoDB(dynamoDBClient);

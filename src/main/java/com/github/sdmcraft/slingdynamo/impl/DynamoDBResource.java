@@ -1,7 +1,7 @@
 /**
  *
  */
-package com.github.sdmcraft.slingdynamo;
+package com.github.sdmcraft.slingdynamo.impl;
 
 import java.util.Map;
 
@@ -18,8 +18,8 @@ import org.apache.sling.api.resource.ValueMap;
  * The Class DynamoDBResource.
  */
 public class DynamoDBResource extends AbstractResource implements Resource {
-    /** The Constant RESOURCE_TYPE. */
-    public static final String RESOURCE_TYPE = "sling/servlet/default";
+
+    public final String resourceType;
 
     /** The metadata. */
     private final ResourceMetadata metadata;
@@ -44,6 +44,7 @@ public class DynamoDBResource extends AbstractResource implements Resource {
         this.valueMap = valueMap;
         this.resolver = resolver;
         this.metadata = metadata;
+        this.resourceType = resourceType;
     }
 
     /* (non-Javadoc)
@@ -86,7 +87,7 @@ public class DynamoDBResource extends AbstractResource implements Resource {
      * @see org.apache.sling.api.resource.Resource#getResourceType()
      */
     public String getResourceType() {
-        return RESOURCE_TYPE;
+        return resourceType;
     }
 
     /* (non-Javadoc)
