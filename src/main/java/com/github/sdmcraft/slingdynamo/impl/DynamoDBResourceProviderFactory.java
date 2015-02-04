@@ -10,9 +10,7 @@
  */
 package com.github.sdmcraft.slingdynamo.impl;
 
-import com.amazonaws.auth.AWSCredentials;
 import com.amazonaws.auth.AWSCredentialsProvider;
-import com.amazonaws.auth.BasicAWSCredentials;
 
 import com.amazonaws.regions.Region;
 import com.amazonaws.regions.Regions;
@@ -43,16 +41,18 @@ import java.util.Map;
 /**
  * A factory for creating DynamoDBResourceProvider objects.
  */
-@Component(name = "DynamoDBResourceProviderFactory", label = "DynamoDBResourceProviderFactory", description = "Dynamo DB Resource Provider Factory", immediate = true, metatype = true)
+@Component(label = "DynamoDB Resource Provider Factory", description = "Dynamo DB Resource Provider Factory", immediate = true, metatype = true)
 @Service
 @Properties({@Property(name = "service.description",value = "Dynamo DB Resource Provider Factory")
-    , @Property(name = "service.vendor",value = "sdm.org")
-    , @Property(name = ResourceProvider.ROOTS,value = "/content/dynamodb")
+    , @Property(name = "service.vendor",value = "com.github.sdmcraft")
+    , @Property(name = ResourceProvider.ROOTS,value = DynamoDBConstants.DEFAULT_ROOT)
 })
 public class DynamoDBResourceProviderFactory implements ResourceProviderFactory {
     /** The Constant PROP_REGION. */
     @Property
     private static final String PROP_REGION = "aws.region";
+    @Property
+    private static final String PROP_ENDPOINT = "aws.endpoint";
 
     /** The Constant PROP_RESOURCE_TYPE. */
     @Property
@@ -69,8 +69,9 @@ public class DynamoDBResourceProviderFactory implements ResourceProviderFactory 
 
     /** The root. */
     private String root;
-    private final String DEFAULT_ROOT = "/content/dynamodb";
+    private final String DEFAULT_ROOT = DynamoDBConstants.DEFAULT_ROOT;
     private String region;
+    private String endpoint;
     @Reference
     AWSCredentialsProvider awsCredentialsProvider;
 
@@ -123,8 +124,13 @@ public class DynamoDBResourceProviderFactory implements ResourceProviderFactory 
         if ((this.region != null) && !this.region.isEmpty()) {
             Region awsRegion = Region.getRegion(Regions.fromName(region));
             dynamoDBClient.setRegion(awsRegion);
-        } else {
-            dynamoDBClient.setEndpoint("http://localhost:9000");
+        }
+
+        this.endpoint = PropertiesUtil.toString(config.get(PROP_ENDPOINT),
+                Constants.DEFAULT_ENDPOINT);
+
+        if ((this.endpoint != null) && !this.endpoint.isEmpty()) {
+            dynamoDBClient.setEndpoint(this.endpoint);
         }
 
         dynamoDB = new DynamoDB(dynamoDBClient);

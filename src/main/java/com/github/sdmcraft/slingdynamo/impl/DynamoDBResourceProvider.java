@@ -120,66 +120,72 @@ public class DynamoDBResourceProvider implements ResourceProvider,
     public Resource getResource(ResourceResolver resolver,
         HttpServletRequest req, String path) {
         Resource resource = null;
-        Map<String, Object> resourceProps = new HashMap<String, Object>();
-        ResourceMetadata resourceMetadata = new ResourceMetadata();
-        resourceMetadata.setResolutionPath(path);
 
-        if (!path.contains(".")) {
-            if (path.length() > root.length()) {
-                String subPath = path.substring(root.length() + 1);
-                String[] subPathSplits = subPath.split("/");
-                String table = subPathSplits[0];
-                resourceMetadata.put("table", table);
+        try {
+            Map<String, Object> resourceProps = new HashMap<String, Object>();
+            ResourceMetadata resourceMetadata = new ResourceMetadata();
+            resourceMetadata.setResolutionPath(path);
 
-                Table dbtable = dynamoDB.getTable(table);
+            if (!path.contains(".")) {
+                if (path.length() > root.length()) {
+                    String subPath = path.substring(root.length() + 1);
+                    String[] subPathSplits = subPath.split("/");
+                    String table = subPathSplits[0];
+                    resourceMetadata.put("table", table);
 
-                if (subPathSplits.length == 1) {
-                    DescribeTableRequest describeTableRequest = new DescribeTableRequest(table);
-                    DescribeTableResult describeTableResult = null;
+                    Table dbtable = dynamoDB.getTable(table);
 
-                    describeTableResult = dynamoDBClient.describeTable(describeTableRequest);
+                    if (subPathSplits.length == 1) {
+                        DescribeTableRequest describeTableRequest = new DescribeTableRequest(table);
+                        DescribeTableResult describeTableResult = null;
 
-                    Date creationDate = describeTableResult.getTable()
-                                                           .getCreationDateTime();
-                    long itemCount = describeTableResult.getTable()
-                                                        .getItemCount();
+                        describeTableResult = dynamoDBClient.describeTable(describeTableRequest);
 
-                    resourceProps.put("creation-date", creationDate);
-                    resourceProps.put("record-count", itemCount);
-                    resourceProps.put("table-name", table);
-                } else if (subPathSplits.length == 2) {
-                    int id = Integer.parseInt(subPathSplits[1]);
-                    ScanFilter idFilter = new ScanFilter("id").eq(id);
-                    ItemCollection<ScanOutcome> items = dbtable.scan(idFilter);
-                    Iterator<Item> itemItr = items.iterator();
+                        Date creationDate = describeTableResult.getTable()
+                                                               .getCreationDateTime();
+                        long itemCount = describeTableResult.getTable()
+                                                            .getItemCount();
 
-                    Item item = itemItr.next();
-                    resourceProps = itemToMap(item);
-                } else if (subPathSplits.length > 2) {
-                    int parent = Integer.parseInt(subPathSplits[1]);
-                    Item item = null;
-
-                    for (int i = 2; i < subPathSplits.length; i++) {
-                        int child = Integer.parseInt(subPathSplits[i]);
-                        ScanFilter parentFilter = new ScanFilter("parent").eq(parent);
-                        ScanFilter childFilter = new ScanFilter("child_id").eq(child);
-                        ItemCollection<ScanOutcome> items = dbtable.scan(parentFilter,
-                                childFilter);
+                        resourceProps.put("creation-date", creationDate);
+                        resourceProps.put("record-count", itemCount);
+                        resourceProps.put("table-name", table);
+                    } else if (subPathSplits.length == 2) {
+                        int id = Integer.parseInt(subPathSplits[1]);
+                        ScanFilter idFilter = new ScanFilter("id").eq(id);
+                        ItemCollection<ScanOutcome> items = dbtable.scan(idFilter);
                         Iterator<Item> itemItr = items.iterator();
-                        item = itemItr.next();
-                        parent = item.getInt("id");
+
+                        Item item = itemItr.next();
+                        resourceProps = itemToMap(item);
+                    } else if (subPathSplits.length > 2) {
+                        int parent = Integer.parseInt(subPathSplits[1]);
+                        Item item = null;
+
+                        for (int i = 2; i < subPathSplits.length; i++) {
+                            int child = Integer.parseInt(subPathSplits[i]);
+                            ScanFilter parentFilter = new ScanFilter("parent").eq(parent);
+                            ScanFilter childFilter = new ScanFilter("child_id").eq(child);
+                            ItemCollection<ScanOutcome> items = dbtable.scan(parentFilter,
+                                    childFilter);
+                            Iterator<Item> itemItr = items.iterator();
+                            item = itemItr.next();
+                            parent = item.getInt("id");
+                        }
+
+                        resourceProps = itemToMap(item);
                     }
-
-                    resourceProps = itemToMap(item);
                 }
+
+                resourceProps.put("hello", "world");
+
+                ModifiableValueMapDecorator valueMap = new ModifiableValueMapDecorator(resourceProps);
+
+                resource = new DynamoDBResource(resolver, resourceMetadata,
+                        valueMap, resourceType);
             }
-
-            resourceProps.put("hello", "world");
-
-            ModifiableValueMapDecorator valueMap = new ModifiableValueMapDecorator(resourceProps);
-
-            resource = new DynamoDBResource(resolver, resourceMetadata,
-                    valueMap, resourceType);
+        } catch (Throwable ex) {
+            LOGGER.error(ex.getMessage(), ex);
+            throw new RuntimeException(ex);
         }
 
         return resource;
@@ -196,7 +202,8 @@ public class DynamoDBResourceProvider implements ResourceProvider,
      * @see org.apache.sling.api.resource.ModifyingResourceProvider#hasChanges(org.apache.sling.api.resource.ResourceResolver)
      */
     public boolean hasChanges(ResourceResolver arg0) {
-    	LOGGER.info(">>>>>>>>HasChanges");
+        LOGGER.info(">>>>>>>>HasChanges");
+
         return false;
     }
 

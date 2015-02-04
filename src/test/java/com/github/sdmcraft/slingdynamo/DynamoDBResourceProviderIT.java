@@ -19,21 +19,38 @@ import com.amazonaws.services.dynamodbv2.model.ScalarAttributeType;
 import com.amazonaws.services.dynamodbv2.model.TableDescription;
 import com.amazonaws.services.dynamodbv2.model.TableStatus;
 
+import org.apache.http.client.ClientProtocolException;
+import org.apache.http.entity.StringEntity;
+
+import org.apache.sling.testing.tools.http.Request;
+import org.apache.sling.testing.tools.http.RequestBuilder;
+import org.apache.sling.testing.tools.http.RequestExecutor;
 import org.apache.sling.testing.tools.sling.SlingClient;
 import org.apache.sling.testing.tools.sling.SlingTestBase;
 
+import org.junit.Before;
 import org.junit.BeforeClass;
 import org.junit.Test;
 
 import org.skyscreamer.jsonassert.JSONAssert;
+
+import java.io.IOException;
 
 import java.util.HashMap;
 import java.util.Map;
 
 
 public class DynamoDBResourceProviderIT extends SlingTestBase {
+    private static final String SLING_TEST_USER = (System.getProperty(
+            "test.server.username") != null)
+        ? System.getProperty("test.server.username") : "admin";
+    private static final String SLING_TEST_PASSWORD = (System.getProperty(
+            "test.server.password") != null)
+        ? System.getProperty("test.server.password") : "admin";
     private static final String PORT = System.getProperty("dynamodb.port");
-    private static final String testDbTable = "data" ;
+    private static final String TEST_DB_TABLE = "data";
+    public static final String LOCAL_DYNAMO_DB = String.format("http://localhost:%s",
+            DynamoDBResourceProviderIT.PORT);
     private static AmazonDynamoDB dynamoDB;
 
     /**
@@ -52,14 +69,13 @@ public class DynamoDBResourceProviderIT extends SlingTestBase {
     @BeforeClass
     public static void init() throws Exception {
         dynamoDB = new AmazonDynamoDBClient(new BasicAWSCredentials("", ""));
-        dynamoDB.setEndpoint(String.format("http://localhost:%s",
-                DynamoDBResourceProviderIT.PORT));
+        dynamoDB.setEndpoint(LOCAL_DYNAMO_DB);
 
         AttributeDefinition id = new AttributeDefinition("id",
                 ScalarAttributeType.N);
 
         // Create a table with a primary hash key named 'name', which holds a string
-        CreateTableRequest createTableRequest = new CreateTableRequest().withTableName(testDbTable)
+        CreateTableRequest createTableRequest = new CreateTableRequest().withTableName(TEST_DB_TABLE)
                                                                         .withKeySchema(new KeySchemaElement().withAttributeName(
                     "id").withKeyType(KeyType.HASH)).withAttributeDefinitions(id)
                                                                         .withProvisionedThroughput(new ProvisionedThroughput().withReadCapacityUnits(
@@ -67,10 +83,10 @@ public class DynamoDBResourceProviderIT extends SlingTestBase {
         TableDescription createdTableDescription = dynamoDB.createTable(createTableRequest)
                                                            .getTableDescription();
         // Wait for it to become active
-        waitForTableToBecomeAvailable(testDbTable);
+        waitForTableToBecomeAvailable(TEST_DB_TABLE);
 
         // Describe our new table
-        DescribeTableRequest describeTableRequest = new DescribeTableRequest().withTableName(testDbTable);
+        DescribeTableRequest describeTableRequest = new DescribeTableRequest().withTableName(TEST_DB_TABLE);
         TableDescription tableDescription = dynamoDB.describeTable(describeTableRequest)
                                                     .getTable();
         //System.out.println("Table Description: " + tableDescription);
@@ -81,10 +97,32 @@ public class DynamoDBResourceProviderIT extends SlingTestBase {
         createItem(5, "California", 3, 1, new String[] { "1" });
         createItem(6, "San Francisco", 5, 1, null);
         createItem(7, "Texas", 3, 2, null);
+        dynamoDB.shutdown();
 
-        //        ScanRequest scanRequest = new ScanRequest(testDbTable);
+        //        ScanRequest scanRequest = new ScanRequest(TEST_DB_TABLE);
         //        ScanResult scanResult = dynamoDB.scan(scanRequest);
         //        System.out.println(("Scan Result: " + scanResult));
+    }
+
+    @Before
+    public void before()
+        throws ClientProtocolException, IOException, InterruptedException {
+        //TODO: This sleep is to let the sling instance become fully ready. Remove it and have a mer deterministic check like checking that all bundles are active
+        Thread.currentThread().sleep(20000);
+
+        RequestBuilder requestBuilder = getRequestBuilder();
+        String path = "/apps/dynamodb/install/com.github.sdmcraft.slingdynamo.impl.DynamoDBResourceProviderFactory";
+        Request request = requestBuilder.buildPostRequest(path);
+        StringEntity e = new StringEntity("aws.endpoint=" + LOCAL_DYNAMO_DB);
+        e.setContentType("application/x-www-form-urlencoded");
+        request.withEntity(e);
+        request.withCredentials(SLING_TEST_USER, SLING_TEST_PASSWORD);
+
+        RequestExecutor requestExecutor = getRequestExecutor().execute(request);
+        String response = requestExecutor.getContent();
+
+        //System.out.println(">>>>>>>" + response);
+        requestExecutor.assertStatus(200);
     }
 
     /**
@@ -121,6 +159,8 @@ public class DynamoDBResourceProviderIT extends SlingTestBase {
 
     @Test
     public void testListChildren() throws Exception {
+        Thread.currentThread().sleep(20000);
+
         String expected = "{\"id\":\"1\",\"name\":\"North America\",\"children\":\"[1]\",\"1\":{\"id\":\"3\",\"child_id\":\"1\",\"name\":\"USA\",\"children\":\"[1, 2]\",\"parent\":\"1\"}}";
         String actual = getRequestExecutor()
                             .execute(getRequestBuilder()
@@ -136,7 +176,8 @@ public class DynamoDBResourceProviderIT extends SlingTestBase {
      * @param tableName the table name
      */
     private static void waitForTableToBecomeAvailable(String tableName) {
-        System.out.println("Waiting for " + tableName + " to become ACTIVE...");
+        System.out.println("Waiting for table - " + tableName +
+            " to become ACTIVE...");
 
         long startTime = System.currentTimeMillis();
         long endTime = startTime + (10 * 60 * 1000);
@@ -187,7 +228,7 @@ public class DynamoDBResourceProviderIT extends SlingTestBase {
             item.put("children", new AttributeValue().withNS(children));
         }
 
-        PutItemRequest putItemRequest = new PutItemRequest(testDbTable, item);
+        PutItemRequest putItemRequest = new PutItemRequest(TEST_DB_TABLE, item);
         PutItemResult putItemResult = dynamoDB.putItem(putItemRequest);
     }
 }

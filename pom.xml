@@ -263,7 +263,8 @@
 						<jar.executor.jar.name.regexp>org.apache.sling.launchpad.*jar$</jar.executor.jar.name.regexp>
 						<additional.bundles.path>${project.build.directory}/sling/additional-bundles</additional.bundles.path>
 						<!-- <test.server.url>http://localhost:8080</test.server.url> <test.server.username>admin</test.server.username> 
-							<test.server.password>admin</test.server.password> -->
+							<test.server.password>admin</test.server.password>
+						 <keepJarRunning>true</keepJarRunning> -->
 						<server.ready.timeout.seconds>60</server.ready.timeout.seconds>
 						<sling.testing.timeout.multiplier>1.0</sling.testing.timeout.multiplier>
 						<server.ready.path.1>/:script src="system/sling.js"</server.ready.path.1>
