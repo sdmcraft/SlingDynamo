@@ -5,7 +5,7 @@ SlingDynamo is an Amazon's dynamo DB based Sling resource provider implementatio
 
 Table Structure in DynamoDB
 ===========================
-This is a specific table structure which is supported OOTB by this implementation. This table structure is generic enough to store any data in hierarchial structure. The only requirement for this table is to have 4 columns in addition to other application specific columns. <br/>
+Below is a specific table structure which is supported OOTB by this implementation. This table structure is generic enough to store any data in hierarchial structure. The only requirement for this table is to have 4 columns in addition to other application specific columns. <br/>
 
 1. id (Number) - The unique identifier for a row
 2. child_id (Number) - Unique identifier of a child row in context of its parent row
@@ -30,7 +30,7 @@ Usage Instructions
 ==================
 1. Either download it from maven central or build it yourself.
 2. Install the bundle on your sling instance.
-3. Open up http://localhost:8080/system/console/configMgr
+3. Open up http://&lt;your-sling-instance&gt;/system/console/configMgr
 4. Configure "Dynamo DB Resource Provider Factory" as follows
   1. Provide the aws region where your dynamodb resides in 'aws.region'. For e.g. 'us-west-2'
   2. Provide the root path under which you would want to access your dynamo DB resources in 'provider.roots'. For e.g. /content/dynamodb
@@ -65,7 +65,7 @@ children: "[1,2]"
 
 Building it yourself
 ====================
-1. Clone https://github.com/satyadeep1980/SlingDynamo.git
+1. Clone https://github.com/sdmcraft/SlingDynamo
 2. cd SlingDynamo
 3. mvn clean install (This would try to install the bundle on your local sling instance at localhost:8080. So ensure that its running)
 
