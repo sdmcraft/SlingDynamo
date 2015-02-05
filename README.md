@@ -28,15 +28,16 @@ If this table structure does not suit your requirements, you can always modify t
 
 Usage Instructions
 ==================
-1. Clone https://github.com/satyadeep1980/SlingDynamo.git
-2. cd SlingDynamo
-3. mvn clean install
-4. Open up http://localhost:8080/system/console/configMgr
-5. Configure DynamoDBResourceProviderFactory as follows
+1. Either download it from maven central or build it yourself.
+2. Install the bundle on your sling instance.
+3. Open up http://localhost:8080/system/console/configMgr
+4. Configure "Dynamo DB Resource Provider Factory" as follows
+  1. Provide your aws region in aws.region.name. For e.g. 'us-west-2'
+  2. Provide the root path under which you would want to  access your dynamo DB resources. For e.g. /content/dynamodb
+  3. Optionally provide 'aws.endpoint' . This setting would override the region setting
+5. Configure "SlingDynamoCredentialProvider" as follows:
   1. Provide your aws access key in aws.access.key.name
   2. Provide your aws access secret in aws.secret.access.key.name
-  3. Provide your aws region in aws.region.name. For e.g. 'us-west-2'
-  4. Provide the root path under which you would want to  access your dynamo DB resources. For e.g. /content/dynamodb
 6. Now access your dynamodb resource as follows:<br/>
 http://localhost:8080/content/dynamodb/&lt;table_name&gt;/&lt;id&gt;.json<br/>
 http://localhost:8080/content/dynamodb/&lt;table_name&gt;/&lt;id&gt;/&lt;child_id1&gt;/&lt;child_id2&gt;/.../&lt;child_idn&gt;.json<br/>
@@ -60,6 +61,12 @@ parent: "1",
 children: "[1,2]"
 }
 </pre>
+
+Building it yourself
+====================
+1. Clone https://github.com/satyadeep1980/SlingDynamo.git
+2. cd SlingDynamo
+3. mvn clean install (This would try to install the bundle on your local sling instance at localhost:8080. So ensure that its running)
 
 Running Tests
 =============
