@@ -32,9 +32,10 @@ Usage Instructions
 2. Install the bundle on your sling instance.
 3. Open up http://localhost:8080/system/console/configMgr
 4. Configure "Dynamo DB Resource Provider Factory" as follows
-  1. Provide your aws region in aws.region.name. For e.g. 'us-west-2'
-  2. Provide the root path under which you would want to  access your dynamo DB resources. For e.g. /content/dynamodb
-  3. Optionally provide 'aws.endpoint' . This setting would override the region setting
+  1. Provide the aws region where your dynamodb resides in 'aws.region'. For e.g. 'us-west-2'
+  2. Provide the root path under which you would want to access your dynamo DB resources in 'provider.roots'. For e.g. /content/dynamodb
+  3. Optionally provide 'aws.endpoint' . This setting would override the 'aws.region' setting.
+  4. Optionally provide 'resourceType' if you want to use your own rendering script for the dynamodb resources. If left blank, it uses the sling's default rendering mechanism.
 5. Configure "SlingDynamoCredentialProvider" as follows:
   1. Provide your aws access key in aws.access.key.name
   2. Provide your aws access secret in aws.secret.access.key.name
@@ -70,7 +71,7 @@ Building it yourself
 
 Running Tests
 =============
-This project uses 'Sling Testing Tools' as specified at [0](http://sling.apache.org/documentation/development/sling-testing-tools.html). The integration tests are run via HTTP requests against a Sling test instance that is started during the Maven build cycle. This blog at [1](http://labs.sixdimensions.com/blog/2013-06-05/creating-integration-tests-apache-sling/) was really helpful in getting things setup for writing the integration tests.
+This project uses 'Sling Testing Tools' as specified at [0](http://sling.apache.org/documentation/development/sling-testing-tools.html). The integration tests are run via HTTP requests against a Sling test instance that is started during the Maven build cycle. This blog at [1](http://labs.sixdimensions.com/blog/2013-06-05/creating-integration-tests-apache-sling/) is really helpful in getting things setup for writing the integration tests.
 
 Also the tests use local DynamoDB instance (see [2](http://labs.sixdimensions.com/blog/2013-06-05/creating-integration-tests-apache-sling/)) which is basically a local DynamoDB setup with the same api support as the real dynamodb on AWS. This prevents the tests from incurring api usage costs on AWS. Here's a very useful resource for integrating local dynamodb with maven build cycle at [3](http://dynamodb.jcabi.com/)
 
